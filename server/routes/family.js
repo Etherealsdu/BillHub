@@ -18,7 +18,7 @@ function generateInviteCode() {
 
 router.get('/', (req, res) => {
   const user = db.findOne('users', u => u.id === req.userId)
-  if (!user || !user.familyId) return res.json({ family: null })
+  if (!user || !user.familyId) return res.json({ family: null, members: [] })
 
   const family = db.findOne('families', f => f.id === user.familyId)
   if (!family) return res.json({ family: null })

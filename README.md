@@ -12,10 +12,11 @@ BillHub/
 │   ├── app.js / app.json / app.wxss
 │   ├── pages/
 │   │   ├── index/                  # 首页（数据概览、同步入口、近期账单）
-│   │   ├── bills/                  # 账单列表页（筛选、批量操作）
+│   │   ├── bills/                  # 账单列表页（筛选、批量操作、个人/家庭切换）
 │   │   ├── categories/             # 分类管理页（系统/自定义分类编辑）
-│   │   ├── profile/                # 个人中心（授权管理、数据设置）
-│   │   └── bill-edit/              # 账单编辑页（新增/编辑单笔账单）
+│   │   ├── profile/                # 个人中心（授权管理、数据设置、家庭管理）
+│   │   ├── bill-edit/              # 账单编辑页（新增/编辑单笔账单）
+│   │   └── family/                 # 家庭管理页（创建/加入/成员管理）
 │   ├── components/                 # 公共组件
 │   ├── utils/                      # 工具函数 + API 对接
 │   └── images/                     # 图标资源
@@ -73,16 +74,23 @@ npm start
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | POST | /api/auth/login | 微信 code 登录，返回 JWT |
-| GET  | /api/bills | 账单列表（分页、筛选） |
+| POST | /api/auth/update-profile | 更新用户资料 |
+| GET  | /api/bills | 账单列表（分页、筛选、scope=personal\|family、ownerId） |
 | POST | /api/bills | 新增账单 |
 | PUT  | /api/bills/:id | 更新账单 |
 | DELETE | /api/bills/:id | 删除账单 |
-| POST | /api/bills/batch | 批量操作 |
+| POST | /api/bills/batch | 批量操作（最多 100 条） |
 | POST | /api/bills/sync | 同步微信/支付宝账单 |
 | GET  | /api/categories | 获取分类列表 |
 | POST | /api/categories | 新增分类 |
 | PUT  | /api/categories/:id | 修改分类 |
 | DELETE | /api/categories/:id | 删除分类 |
+| PUT  | /api/categories/reorder/batch | 批量排序 |
+| GET  | /api/family | 获取家庭信息及成员列表 |
+| POST | /api/family/create | 创建家庭（返回6位邀请码） |
+| POST | /api/family/join | 通过邀请码加入家庭 |
+| POST | /api/family/leave | 离开家庭 |
+| POST | /api/family/remove/:targetId | 管理员移除成员 |
 | GET  | /api/health | 健康检查 |
 
 ## 功能使用说明
@@ -92,12 +100,14 @@ npm start
 - **同步账单**：点击"同步"按钮，选择微信或支付宝同步账单记录
 - **记一笔**：点击右上角"+ 记一笔"手动添加账单
 - **近期账单**：最近 5 条账单预览，点击可编辑
+- **家庭模式**：已加入家庭的用户可在顶部切换"个人/家庭"范围，家庭维度显示全家人汇总
 
 ### 账单页（pages/bills/）
 - **筛选**：按支出/收入类型、分类、日期筛选账单
 - **批量操作**：进入批量模式，可批量修改分类或删除
 - **长按操作**：长按账单可编辑或删除
 - **排序**：按时间倒序排列
+- **个人/家庭切换**：顶部切换器可查看个人账单或全家人账单（含 ownerName）
 
 ### 分类管理页（pages/categories/）
 - **系统分类**：预置 11 个支出分类 + 5 个收入分类，仅可调整排序
@@ -106,8 +116,17 @@ npm start
 
 ### 个人中心（pages/profile/）
 - **授权管理**：微信支付/支付宝授权绑定
+- **家庭管理**：创建家庭（生成6位邀请码）、加入家庭（输入邀请码）、查看成员、管理员可移除成员、离开家庭
 - **数据设置**：自动同步开关、同步间隔配置、立即同步、导出数据
 - **清除数据**：恢复出厂设置
+
+### 家庭管理（pages/family/）
+- **创建家庭**：输入家庭名称，生成唯一6位字母数字邀请码，创建者自动成为管理员
+- **加入家庭**：输入邀请码加入已有家庭
+- **成员列表**：显示所有成员昵称、账单数、角色（管理员/成员）
+- **邀请码复制**：点击邀请码区域复制到剪贴板，分享给家人
+- **权限控制**：仅管理员可移除成员；成员可自行离开家庭；最后一人离开时家庭自动解散
+- **记账范围**：加入家庭后，首页和账单页顶部出现"个人/家庭"切换器；家庭模式下查看所有成员账单汇总，支持按成员筛选（ownerId）
 
 ### 记账（pages/bill-edit/）
 - 选择类型：支出/收入/转账
@@ -175,7 +194,51 @@ npm start
   isSystem: true,            // 系统预置 vs 自定义
   sortOrder: 1
 }
+
+// 家庭
+{
+  id: 'fam_1689000000000',
+  name: '我的家',
+  code: 'A3X9K2',            // 6位邀请码（大写字母+数字）
+  createdAt: '...'
+}
+
+// 用户（含家庭关联）
+{
+  id: 1,
+  openid: 'mock_xxx',
+  nickname: '小明',
+  familyId: 'fam_1689000000000',
+  familyRole: 'admin' | 'member',
+  // ...
+}
+
+// 家庭账单（scope=family 时返回附加字段）
+{
+  // ...普通账单字段
+  ownerName: '小明',          // 账单创建者的昵称
+}
 ```
+
+## 测试
+
+```bash
+cd server
+npm test              # 运行所有测试（Jest + supertest）
+npm run test:watch    # 监听模式
+```
+
+当前共 **90 个测试用例**，覆盖：
+
+| 测试文件 | 用例数 | 覆盖内容 |
+|---------|--------|---------|
+| auth.test.js | 7 | 登录/注册、token 签发、资料更新、异常处理 |
+| bills.test.js | 21 | CRUD、批量操作、分页筛选、同步去重、输入验证 |
+| categories.test.js | 14 | CRUD、排序、系统分类保护、级联删除 |
+| family.test.js | 17 | 创建/加入/离开家庭、成员管理、权限控制、家庭账单范围、ownerName |
+| db.test.js | 12 | 初始化、CRUD、写队列、边界条件 |
+| middleware.test.js | 6 | JWT 验证、token 过期、缺少 token |
+| services.test.js | 6 | 微信/支付宝 code2session 和 sync |
 
 ## 开发环境
 

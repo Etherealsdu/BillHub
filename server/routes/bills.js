@@ -18,10 +18,14 @@ router.get('/', (req, res) => {
   const { type, category, startDate, endDate, scope, ownerId, page = 1, pageSize = 50 } = req.query
 
   let userIds = [req.userId]
-  if (scope === 'family' && req.familyId) {
-    const members = db.find('users', u => u.familyId === req.familyId)
-    userIds = members.map(m => m.id)
-    if (ownerId) userIds = userIds.filter(id => id === Number(ownerId))
+  if (scope === 'family') {
+    const currentUser = db.findOne('users', u => u.id === req.userId)
+    const familyId = currentUser?.familyId
+    if (familyId) {
+      const members = db.find('users', u => u.familyId === familyId)
+      userIds = members.map(m => m.id)
+      if (ownerId) userIds = userIds.filter(id => id === Number(ownerId))
+    }
   }
 
   let bills = db.find('bills', b => userIds.includes(b.userId))
