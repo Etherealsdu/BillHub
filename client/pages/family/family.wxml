@@ -1,0 +1,78 @@
+<view class="page-container">
+  <view wx:if="{{loading}}" class="loading-wrap">
+    <view class="skeleton skeleton-card" wx:for="{{3}}" wx:key="*this"></view>
+  </view>
+
+  <view wx:elif="{{family}}" class="family-info">
+    <view class="card family-header flex-center">
+      <text class="family-icon">🏠</text>
+      <text class="family-name">{{family.name}}</text>
+      <text class="family-count text-light text-sm">{{family.memberCount}} 位成员</text>
+    </view>
+
+    <view class="card invite-section mt-20">
+      <view class="section-title">邀请码</view>
+      <view class="code-box flex-center" bindtap="copyCode">
+        <text class="code-text">{{family.code}}</text>
+        <text class="copy-hint text-sm text-primary">点击复制</text>
+      </view>
+      <text class="text-xs text-light mt-10">分享邀请码给家人，即可加入您的家庭</text>
+    </view>
+
+    <view class="card mt-20">
+      <view class="section-title">家庭成员</view>
+      <view wx:for="{{members}}" wx:key="id" class="member-item flex-between">
+        <view class="member-left flex-row">
+          <text class="member-avatar">{{item.avatarUrl || '👤'}}</text>
+          <view class="member-info">
+            <text class="member-name">{{item.nickname}}</text>
+            <text class="member-bills text-xs text-light">{{item.billCount}} 条账单</text>
+          </view>
+        </view>
+        <view class="flex-row" style="gap: 12rpx;">
+          <text wx:if="{{item.role === 'admin'}}" class="tag text-sm" style="background:#F0F4FF;color:#4A90D9;">管理员</text>
+          <text wx:if="{{item.role !== 'admin'}}" class="text-warning text-sm" bindtap="onRemoveMember" data-member="{{item}}">移除</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card mt-20" bindtap="onLeaveFamily">
+      <view class="setting-item flex-center" style="color:#FF4D4F;">
+        <text>离开家庭</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{!loading && !family}}" class="no-family">
+    <view class="empty-icon">🏡</view>
+    <text class="empty-title">还没有家庭</text>
+    <text class="empty-desc text-light text-sm">创建家庭后可汇总家庭成员的账单</text>
+
+    <view class="action-row">
+      <view class="btn-primary" bindtap="showCreate">创建家庭</view>
+      <view class="btn-secondary mt-20" bindtap="showJoin">加入家庭</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showCreateModal}}" class="mask" bindtap="hideCreate">
+    <view class="modal card" catchtap="">
+      <text class="modal-title">创建家庭</text>
+      <input class="input-field mt-20" placeholder="输入家庭名称" value="{{createName}}" bindinput="onCreateNameInput" maxlength="20" />
+      <view class="modal-actions">
+        <view class="btn-secondary" bindtap="hideCreate">取消</view>
+        <view class="btn-primary" bindtap="confirmCreate">创建</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showJoinModal}}" class="mask" bindtap="hideJoin">
+    <view class="modal card" catchtap="">
+      <text class="modal-title">加入家庭</text>
+      <input class="input-field mt-20" placeholder="输入6位邀请码" value="{{joinCode}}" bindinput="onJoinCodeInput" maxlength="6" />
+      <view class="modal-actions">
+        <view class="btn-secondary" bindtap="hideJoin">取消</view>
+        <view class="btn-primary" bindtap="confirmJoin">加入</view>
+      </view>
+    </view>
+  </view>
+</view>

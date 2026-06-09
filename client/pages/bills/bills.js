@@ -1,5 +1,6 @@
 const storage = require('../../utils/storage')
 const util = require('../../utils/util')
+const api = require('../../utils/api')
 const logger = require('../../utils/logger')
 
 Page({
@@ -15,7 +16,9 @@ Page({
     showFilterPanel: false,
     selectedIds: [],
     batchMode: false,
-    filterCategoryName: ''
+    filterCategoryName: '',
+    scope: 'personal',
+    hasFamily: false
   },
 
   onLoad() {
@@ -32,16 +35,43 @@ Page({
   },
 
   loadData() {
-    const bills = storage.getBills()
-    const cats = storage.getCategories()
-    const allCats = [...(cats.expense || []), ...(cats.income || [])]
-    this.setData({
-      bills: bills,
-      filteredBills: bills,
-      categories: allCats,
-      loading: false,
-      selectedIds: []
-    }, () => this.applyFilters())
+    const settings = storage.getSettings()
+    const hasFamily = !!(settings.familyId)
+    const scope = settings.scope || 'personal'
+
+    if (scope === 'family' && hasFamily) {
+      this.setData({ loading: true, scope: 'family', hasFamily: true })
+      api.getBills({ scope: 'family' })
+        .then(data => {
+          const bills = data.bills || []
+          const cats = storage.getCategories()
+          const allCats = [...(cats.expense || []), ...(cats.income || [])]
+          this.setData({
+            bills: bills,
+            filteredBills: bills,
+            categories: allCats,
+            loading: false,
+            selectedIds: []
+          }, () => this.applyFilters())
+        })
+        .catch(() => {
+          this.setData({ loading: false })
+          util.showToast('加载家庭账单失败')
+        })
+    } else {
+      const bills = storage.getBills()
+      const cats = storage.getCategories()
+      const allCats = [...(cats.expense || []), ...(cats.income || [])]
+      this.setData({
+        bills: bills,
+        filteredBills: bills,
+        categories: allCats,
+        loading: false,
+        scope: 'personal',
+        hasFamily: hasFamily,
+        selectedIds: []
+      }, () => this.applyFilters())
+    }
   },
 
   applyFilters() {
@@ -209,6 +239,14 @@ Page({
         }
       }
     })
+  },
+
+  onToggleScope() {
+    const newScope = this.data.scope === 'personal' ? 'family' : 'personal'
+    storage.updateSetting('scope', newScope)
+    this.setData({ scope: newScope })
+    this.loadData()
+    logger.info('切换账单范围', { scope: newScope })
   },
 
   onAddBill() {

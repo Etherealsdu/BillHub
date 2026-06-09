@@ -12,11 +12,19 @@ router.use(auth)
 /**
  * GET /api/bills
  * 查询账单列表
- * Query: type, category, startDate, endDate, page(1), pageSize(50)
+ * Query: type, category, startDate, endDate, scope(personal|family), ownerId, page(1), pageSize(50)
  */
 router.get('/', (req, res) => {
-  let bills = db.find('bills', b => b.userId === req.userId)
-  const { type, category, startDate, endDate, page = 1, pageSize = 50 } = req.query
+  const { type, category, startDate, endDate, scope, ownerId, page = 1, pageSize = 50 } = req.query
+
+  let userIds = [req.userId]
+  if (scope === 'family' && req.familyId) {
+    const members = db.find('users', u => u.familyId === req.familyId)
+    userIds = members.map(m => m.id)
+    if (ownerId) userIds = userIds.filter(id => id === Number(ownerId))
+  }
+
+  let bills = db.find('bills', b => userIds.includes(b.userId))
 
   if (type) bills = bills.filter(b => b.type === type)
   if (category) bills = bills.filter(b => b.category === category)
@@ -29,8 +37,17 @@ router.get('/', (req, res) => {
   const ps = Number(pageSize)
   const paginated = bills.slice((p - 1) * ps, p * ps)
 
-  log.debug('查询账单', { userId: req.userId, total, filter: { type, category, startDate, endDate } })
-  res.json({ bills: paginated, total, page: p, pageSize: ps })
+  const users = db.find('users', u => userIds.includes(u.id))
+  const userMap = {}
+  users.forEach(u => { userMap[u.id] = u.nickname || '用户' + u.id })
+
+  const enriched = paginated.map(b => ({
+    ...b,
+    ownerName: userMap[b.userId] || '未知',
+  }))
+
+  log.debug('查询账单', { userId: req.userId, scope: scope || 'personal', total, filter: { type, category, startDate, endDate } })
+  res.json({ bills: enriched, total, page: p, pageSize: ps })
 })
 
 /**

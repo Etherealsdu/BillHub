@@ -1,4 +1,12 @@
 <view class="page-container">
+  <view wx:if="{{hasFamily}}" class="scope-toggle flex-row">
+    <view class="scope-btn {{scope === 'personal' ? 'active' : ''}}" data-scope="personal" bindtap="onToggleScope">
+      <text>个人账单</text>
+    </view>
+    <view class="scope-btn {{scope === 'family' ? 'active' : ''}}" data-scope="family" bindtap="onToggleScope">
+      <text>家庭账单</text>
+    </view>
+  </view>
   <view class="filter-bar card">
     <view class="flex-row" style="gap: 12rpx; flex-wrap: wrap;">
       <view

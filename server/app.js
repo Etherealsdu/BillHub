@@ -7,6 +7,7 @@ const { logger } = require('./utils/logger')
 const authRoutes = require('./routes/auth')
 const billRoutes = require('./routes/bills')
 const categoryRoutes = require('./routes/categories')
+const familyRoutes = require('./routes/family')
 
 const app = express()
 
@@ -19,6 +20,7 @@ app.use(express.json({ limit: '100kb' }))
 app.use('/api/auth', authRoutes)
 app.use('/api/bills', billRoutes)
 app.use('/api/categories', categoryRoutes)
+app.use('/api/family', familyRoutes)
 
 app.get('/api/health', (_, res) => {
   res.json({ status: 'ok', service: 'billhub-server', version: '1.0.0' })

@@ -12,7 +12,9 @@ Page({
     syncInterval: 24,
     totalBills: 0,
     storageSize: '0 KB',
-    appVersion: '1.0.0'
+    appVersion: '1.0.0',
+    familyId: null,
+    familyName: ''
   },
 
   onShow() {
@@ -29,7 +31,9 @@ Page({
       alipayBound: settings.alipayBound || false,
       autoSync: settings.autoSync !== false,
       syncInterval: settings.syncInterval || 24,
-      totalBills: bills.length
+      totalBills: bills.length,
+      familyId: settings.familyId || null,
+      familyName: settings.familyName || ''
     })
     this.calcStorageSize()
   },
@@ -184,5 +188,9 @@ Page({
 
   onContact() {
     wx.showToast({ title: '请联系开发者: support@billhub.app', icon: 'none', duration: 3000 })
+  },
+
+  onFamilyManage() {
+    util.navigateTo('/pages/family/family')
   }
 })

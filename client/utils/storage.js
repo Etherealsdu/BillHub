@@ -193,7 +193,10 @@ function getSettings() {
     autoSync: true,
     syncInterval: 24,
     defaultSource: 'manual',
-    currency: '¥'
+    currency: '¥',
+    scope: 'personal',
+    familyId: null,
+    familyName: ''
   })
 }
 

@@ -37,7 +37,7 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user.id, openid: user.openid },
+      { userId: user.id, openid: user.openid, familyId: user.familyId || null },
       config.jwtSecret,
       { expiresIn: config.jwtExpiresIn }
     )
@@ -50,6 +50,7 @@ router.post('/login', async (req, res) => {
         avatarUrl: user.avatarUrl,
         wechatBound: !!user.wechatBound,
         alipayBound: !!user.alipayBound,
+        familyId: user.familyId || null,
       },
     })
   } catch (e) {

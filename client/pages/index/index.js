@@ -18,7 +18,9 @@ Page({
     chartData: [],
     totalBills: 0,
     loading: true,
-    loginRetryCount: 0
+    loginRetryCount: 0,
+    scope: 'personal',
+    hasFamily: false
   },
 
   onLoad() {
@@ -40,11 +42,32 @@ Page({
   },
 
   loadData() {
-    const bills = storage.getBills()
-    this.calcStats(bills)
-    this.calcRecentBills(bills)
-    this.calcChartData(bills)
-    this.setData({ loading: false, totalBills: bills.length })
+    const settings = storage.getSettings()
+    const hasFamily = !!(settings.familyId)
+    const scope = settings.scope || 'personal'
+
+    this.setData({ hasFamily: hasFamily, scope: scope })
+
+    if (scope === 'family' && hasFamily) {
+      this.setData({ loading: true })
+      api.getBills({ scope: 'family' })
+        .then(data => {
+          const bills = data.bills || []
+          this.calcStats(bills)
+          this.calcRecentBills(bills)
+          this.calcChartData(bills)
+          this.setData({ loading: false, totalBills: bills.length })
+        })
+        .catch(() => {
+          this.setData({ loading: false })
+        })
+    } else {
+      const bills = storage.getBills()
+      this.calcStats(bills)
+      this.calcRecentBills(bills)
+      this.calcChartData(bills)
+      this.setData({ loading: false, totalBills: bills.length })
+    }
   },
 
   calcStats(bills) {
@@ -185,5 +208,13 @@ Page({
 
   onToggleChart() {
     this.setData({ showChart: !this.data.showChart })
+  },
+
+  onToggleScope() {
+    const newScope = this.data.scope === 'personal' ? 'family' : 'personal'
+    storage.updateSetting('scope', newScope)
+    this.setData({ scope: newScope })
+    this.loadData()
+    logger.info('切换首页范围', { scope: newScope })
   }
 })

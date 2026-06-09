@@ -12,6 +12,7 @@ function authMiddleware(req, res, next) {
     const payload = jwt.verify(token, config.jwtSecret)
     req.userId = payload.userId
     req.openid = payload.openid
+    req.familyId = payload.familyId || null
     next()
   } catch (e) {
     return res.status(401).json({ error: '登录已过期', code: 'TOKEN_EXPIRED' })

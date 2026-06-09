@@ -12,6 +12,15 @@
     </view>
   </view>
 
+  <view wx:if="{{hasFamily}}" class="scope-toggle flex-row">
+    <view class="scope-btn {{scope === 'personal' ? 'active' : ''}}" data-scope="personal" bindtap="onToggleScope">
+      <text>个人</text>
+    </view>
+    <view class="scope-btn {{scope === 'family' ? 'active' : ''}}" data-scope="family" bindtap="onToggleScope">
+      <text>家庭</text>
+    </view>
+  </view>
+
   <view class="today-summary card">
     <view class="summary-title flex-between">
       <text class="font-medium">今日收支</text>

@@ -186,6 +186,26 @@ function reorderCategories(ids) {
   return request('/categories/reorder/batch', { ids }, 'PUT')
 }
 
+function createFamily(name) {
+  return request('/family/create', { name }, 'POST')
+}
+
+function joinFamily(code) {
+  return request('/family/join', { code }, 'POST')
+}
+
+function getFamily() {
+  return request('/family')
+}
+
+function leaveFamily() {
+  return request('/family/leave', {}, 'POST')
+}
+
+function removeFamilyMember(targetId) {
+  return request('/family/remove/' + targetId, {}, 'POST')
+}
+
 module.exports = {
   CONFIG: getConfig,
   setConfig,
@@ -205,4 +225,9 @@ module.exports = {
   updateCategory,
   deleteCategory,
   reorderCategories,
+  createFamily,
+  joinFamily,
+  getFamily,
+  leaveFamily,
+  removeFamilyMember,
 }

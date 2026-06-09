@@ -11,6 +11,17 @@
   </view>
 
   <view class="section card mt-20">
+    <view class="section-title">家庭管理</view>
+    <view class="setting-item flex-between" bindtap="onFamilyManage">
+      <view class="setting-left">
+        <text class="setting-icon">🏠</text>
+        <text>{{familyId ? familyName : '未加入家庭'}}</text>
+      </view>
+      <text class="text-light text-sm">管理 ▸</text>
+    </view>
+  </view>
+
+  <view class="section card mt-20">
     <view class="section-title">授权管理</view>
     <view class="setting-item flex-between">
       <view class="setting-left">

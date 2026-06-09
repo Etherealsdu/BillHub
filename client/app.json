@@ -4,7 +4,8 @@
     "pages/bills/bills",
     "pages/categories/categories",
     "pages/profile/profile",
-    "pages/bill-edit/bill-edit"
+    "pages/bill-edit/bill-edit",
+    "pages/family/family"
   ],
   "window": {
     "navigationBarBackgroundColor": "#4A90D9",

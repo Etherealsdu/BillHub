@@ -20,6 +20,7 @@ const DEFAULT_DATA = {
   bills: [],
   categories: [],
   syncCursors: [],
+  families: [],
   _nextUserId: 1,
 }
 
