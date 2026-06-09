@@ -1,0 +1,19 @@
+<view class="stat-card {{compact ? 'compact' : ''}}">
+  <view wx:if="{{title}}" class="stat-title">{{title}}</view>
+  <view class="stat-row">
+    <view class="stat-item">
+      <view class="stat-label">收入</view>
+      <view class="stat-value text-income">¥{{displayIncome}}</view>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <view class="stat-label">支出</view>
+      <view class="stat-value text-expense">¥{{displayExpense}}</view>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <view class="stat-label">结余</view>
+      <view class="stat-value {{netClass}}">¥{{netAmount}}</view>
+    </view>
+  </view>
+</view>

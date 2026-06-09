@@ -1,0 +1,18 @@
+# 微信开发者工具
+.DS_Store
+*.log
+node_modules/
+
+# 编辑器
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 系统
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# 项目
+project.config.json

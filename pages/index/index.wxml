@@ -1,0 +1,99 @@
+<view class="page-container">
+  <view class="header-section">
+    <view class="flex-between">
+      <view>
+        <view class="greeting">👋 你好</view>
+        <view class="subtitle text-light text-sm">管理你的每一笔收支</view>
+      </view>
+      <view class="add-btn" bindtap="onAddBill">
+        <text class="add-icon">+</text>
+        <text class="add-text">记一笔</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="today-summary card">
+    <view class="summary-title flex-between">
+      <text class="font-medium">今日收支</text>
+      <view class="sync-btn" bindtap="onSyncTap">
+        <text class="sync-icon">🔄</text>
+        <text class="sync-text text-sm">同步</text>
+      </view>
+    </view>
+    <view class="flex-row mt-20" style="gap: 20rpx;">
+      <view class="summary-item income-box">
+        <text class="summary-label">收入</text>
+        <text class="summary-value text-income">¥{{todayIncome.toFixed(2)}}</text>
+      </view>
+      <view class="summary-item expense-box">
+        <text class="summary-label">支出</text>
+        <text class="summary-value text-expense">¥{{todayExpense.toFixed(2)}}</text>
+      </view>
+    </view>
+  </view>
+
+  <stat-card
+    title="本周概览"
+    income="{{weekIncome}}"
+    expense="{{weekExpense}}"
+  ></stat-card>
+
+  <stat-card
+    title="本月概览"
+    income="{{monthIncome}}"
+    expense="{{monthExpense}}"
+    class="mt-20"
+  ></stat-card>
+
+  <view class="chart-section card mt-20">
+    <view class="flex-between" bindtap="onToggleChart">
+      <text class="font-medium">本月趋势</text>
+      <text class="text-light text-sm">{{showChart ? '收起' : '展开'}} ▾</text>
+    </view>
+    <view wx:if="{{showChart}}" class="chart-container mt-20">
+      <view class="chart-bars">
+        <view wx:for="{{chartData}}" wx:key="day" class="chart-bar-group">
+          <view class="bar-wrap">
+            <view class="bar bar-expense" style="height: {{maxExpense > 0 ? (item.expense / maxExpense * 120) : 0}}rpx;"></view>
+            <view class="bar bar-income" style="height: {{maxIncome > 0 ? (item.income / maxIncome * 120) : 0}}rpx;"></view>
+          </view>
+          <text class="bar-label">{{item.day}}</text>
+        </view>
+      </view>
+      <view class="chart-legend">
+        <view class="legend-item"><view class="legend-dot dot-expense"></view>支出</view>
+        <view class="legend-item"><view class="legend-dot dot-income"></view>收入</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="recent-section card mt-20">
+    <view class="flex-between">
+      <text class="font-medium">近期账单</text>
+      <text class="text-primary text-sm" bindtap="onViewAllBills">查看全部 →</text>
+    </view>
+    <view wx:if="{{recentBills.length > 0}}" class="recent-list">
+      <bill-card
+        wx:for="{{recentBills}}"
+        wx:key="id"
+        bill="{{item}}"
+        showDate="{{true}}"
+        showSource="{{true}}"
+        bind:click="onBillClick"
+      />
+    </view>
+    <empty-state
+      wx:else
+      icon="📭"
+      title="暂无账单"
+      description="点击右上角同步按钮，导入微信/支付宝账单"
+      showAction="{{false}}"
+    />
+  </view>
+
+  <view class="sync-info text-center text-xs text-light mt-20">
+    <text wx:if="{{lastSyncTime}}">上次同步: {{lastSyncTime}}</text>
+    <text wx:else>尚未同步</text>
+    <text class="ml-20">共 {{totalBills}} 条账单</text>
+  </view>
+</view>

@@ -1,0 +1,81 @@
+<view class="page-container">
+  <view class="tabs">
+    <view
+      class="tab {{currentTab === 'expense' ? 'active' : ''}}"
+      data-tab="expense"
+      bindtap="switchTab"
+    >
+      <text class="tab-dot dot-expense"></text>
+      支出分类
+    </view>
+    <view
+      class="tab {{currentTab === 'income' ? 'active' : ''}}"
+      data-tab="income"
+      bindtap="switchTab"
+    >
+      <text class="tab-dot dot-income"></text>
+      收入分类
+    </view>
+  </view>
+
+  <view class="category-list">
+    <view
+      wx:for="{{currentTab === 'expense' ? expenseCategories : incomeCategories}}"
+      wx:key="id"
+      class="category-item card flex-between"
+    >
+      <view class="cat-left flex-row">
+        <view class="cat-icon-lg">{{item.icon || '📁'}}</view>
+        <view class="cat-info">
+          <view class="cat-name-lg">{{item.name}}</view>
+          <view class="cat-meta text-light text-sm">
+            <text wx:if="{{item.isSystem}}">系统预置</text>
+            <text wx:else>自定义</text>
+            <text class="ml-10">排序: {{item.sortOrder}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="cat-actions flex-row">
+        <view wx:if="{{!item.isSystem}}" class="action-icon edit" data-category="{{item}}" bindtap="onEditCategory">✏️</view>
+        <view wx:if="{{!item.isSystem}}" class="action-icon delete" data-category="{{item}}" bindtap="onDeleteCategory">🗑️</view>
+        <view class="action-icon move" data-category="{{item}}" bindtap="moveUp">⬆️</view>
+        <view class="action-icon move" data-category="{{item}}" bindtap="moveDown">⬇️</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="add-category-btn" bindtap="showAddDialog">
+    <text class="add-cat-icon">+</text>
+    <text>新增{{currentTab === 'expense' ? '支出' : '收入'}}分类</text>
+  </view>
+
+  <view class="hint text-center text-light text-sm mt-20">
+    系统分类仅可调整排序，自定义分类可编辑名称、删除
+  </view>
+
+  <!-- 编辑弹窗 -->
+  <view wx:if="{{showEditModal}}" class="mask" bindtap="cancelEdit"></view>
+  <view wx:if="{{showEditModal}}" class="modal">
+    <view class="modal-content">
+      <view class="modal-title">编辑分类名称</view>
+      <input class="input-field" value="{{editName}}" placeholder="请输入分类名称" bindinput="onEditNameInput" maxlength="10" />
+      <view class="modal-actions">
+        <view class="modal-btn cancel" bindtap="cancelEdit">取消</view>
+        <view class="modal-btn confirm" bindtap="confirmEdit">确认</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 新增弹窗 -->
+  <view wx:if="{{showAddModal}}" class="mask" bindtap="cancelAdd"></view>
+  <view wx:if="{{showAddModal}}" class="modal">
+    <view class="modal-content">
+      <view class="modal-title">新增{{addType === 'expense' ? '支出' : '收入'}}分类</view>
+      <input class="input-field" value="{{addName}}" placeholder="请输入新分类名称" bindinput="onAddNameInput" maxlength="10" />
+      <view class="modal-actions">
+        <view class="modal-btn cancel" bindtap="cancelAdd">取消</view>
+        <view class="modal-btn confirm" bindtap="confirmAdd">添加</view>
+      </view>
+    </view>
+  </view>
+</view>

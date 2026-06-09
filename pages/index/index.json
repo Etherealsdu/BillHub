@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "stat-card": "/components/stat-card/stat-card",
+    "bill-card": "/components/bill-card/bill-card",
+    "empty-state": "/components/empty-state/empty-state"
+  },
+  "navigationBarTitleText": "账单通"
+}

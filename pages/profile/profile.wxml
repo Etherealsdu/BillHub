@@ -1,0 +1,109 @@
+<view class="page-container">
+  <view class="user-section card flex-center">
+    <view class="avatar">{{userInfo ? userInfo.avatarUrl : '👤'}}</view>
+    <view class="user-name">{{userInfo ? userInfo.nickName : '未登录'}}</view>
+    <view class="user-stats flex-row mt-20">
+      <view class="stat-item">
+        <text class="stat-num">{{totalBills}}</text>
+        <text class="stat-label">总账单</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section card mt-20">
+    <view class="section-title">授权管理</view>
+    <view class="setting-item flex-between">
+      <view class="setting-left">
+        <text class="setting-icon">💬</text>
+        <text>微信支付</text>
+      </view>
+      <view class="setting-right">
+        <view wx:if="{{wechatBound}}" class="badge badge-success">已授权</view>
+        <view wx:else class="btn-primary btn-small" bindtap="onWechatAuth">去授权</view>
+      </view>
+    </view>
+    <view class="divider"></view>
+    <view class="setting-item flex-between">
+      <view class="setting-left">
+        <text class="setting-icon">🔵</text>
+        <text>支付宝</text>
+      </view>
+      <view class="setting-right">
+        <view wx:if="{{alipayBound}}" class="badge badge-success">已授权</view>
+        <view wx:else class="btn-primary btn-small" bindtap="onAlipayAuth">去授权</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section card mt-20">
+    <view class="section-title">数据设置</view>
+    <view class="setting-item flex-between">
+      <view class="setting-left">
+        <text class="setting-icon">🔄</text>
+        <text>自动同步</text>
+      </view>
+      <switch checked="{{autoSync}}" bindchange="onToggleAutoSync" color="#4A90D9" />
+    </view>
+    <view class="divider"></view>
+    <view class="setting-item flex-between">
+      <view class="setting-left">
+        <text class="setting-icon">⏰</text>
+        <text>同步间隔</text>
+      </view>
+      <picker mode="selector" range="{{['12小时', '24小时', '48小时', '7天']}}" value="{{syncInterval === 12 ? 0 : syncInterval === 24 ? 1 : syncInterval === 48 ? 2 : 3}}" bindchange="onSyncIntervalChange">
+        <view class="picker-value">{{syncInterval === 12 ? '12小时' : syncInterval === 24 ? '24小时' : syncInterval === 48 ? '48小时' : '7天'}}</view>
+      </picker>
+    </view>
+    <view class="divider"></view>
+    <view class="setting-item flex-between" bindtap="onSyncNow">
+      <view class="setting-left">
+        <text class="setting-icon">📥</text>
+        <text>立即同步</text>
+      </view>
+      <text class="text-light text-sm">▸</text>
+    </view>
+    <view class="divider"></view>
+    <view class="setting-item flex-between" bindtap="onExportData">
+      <view class="setting-left">
+        <text class="setting-icon">📤</text>
+        <text>导出数据</text>
+      </view>
+      <text class="text-light text-sm">▸</text>
+    </view>
+    <view class="divider"></view>
+    <view class="setting-item flex-between">
+      <view class="setting-left">
+        <text class="setting-icon">💾</text>
+        <text>本地存储</text>
+      </view>
+      <text class="text-light text-sm">{{storageSize}}</text>
+    </view>
+    <view class="divider"></view>
+    <view class="setting-item flex-between" bindtap="onClearData">
+      <view class="setting-left">
+        <text class="setting-icon">🗑️</text>
+        <text class="text-expense">清除数据</text>
+      </view>
+      <text class="text-light text-sm">▸</text>
+    </view>
+  </view>
+
+  <view class="section card mt-20">
+    <view class="section-title">关于</view>
+    <view class="setting-item flex-between" bindtap="onAbout">
+      <view class="setting-left">
+        <text class="setting-icon">ℹ️</text>
+        <text>关于账单通</text>
+      </view>
+      <text class="text-light text-sm">v{{appVersion}} ▸</text>
+    </view>
+    <view class="divider"></view>
+    <view class="setting-item flex-between" bindtap="onContact">
+      <view class="setting-left">
+        <text class="setting-icon">📧</text>
+        <text>联系开发者</text>
+      </view>
+      <text class="text-light text-sm">▸</text>
+    </view>
+  </view>
+</view>

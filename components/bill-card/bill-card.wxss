@@ -1,0 +1,83 @@
+.bill-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 0;
+  border-bottom: 2rpx solid #F5F5F5;
+  min-height: 100rpx;
+}
+
+.bill-card:last-child {
+  border-bottom: none;
+}
+
+.bill-card:active {
+  background: #F9FAFB;
+}
+
+.bill-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.bill-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 36rpx;
+  background: #F0F4FF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.bill-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.bill-category {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #1A1A2E;
+  line-height: 1.3;
+}
+
+.bill-meta {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 6rpx;
+  gap: 10rpx;
+}
+
+.bill-remark {
+  font-size: 22rpx;
+  color: #9CA3AF;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 240rpx;
+}
+
+.bill-right {
+  text-align: right;
+  flex-shrink: 0;
+  margin-left: 20rpx;
+}
+
+.bill-amount {
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.bill-time {
+  margin-top: 4rpx;
+}

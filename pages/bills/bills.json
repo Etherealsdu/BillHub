@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "bill-card": "/components/bill-card/bill-card",
+    "empty-state": "/components/empty-state/empty-state"
+  },
+  "navigationBarTitleText": "全部账单",
+  "enablePullDownRefresh": true
+}

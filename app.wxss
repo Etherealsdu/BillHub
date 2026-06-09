@@ -1,0 +1,215 @@
+/* 全局样式 - 账单通 BillHub */
+
+page {
+  background-color: #F5F7FA;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: #1A1A2E;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+/* 通用容器 */
+.page-container {
+  padding: 30rpx;
+  min-height: 100vh;
+}
+
+.card {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+/* 弹性布局 */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-center {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+/* 文字样式 */
+.text-primary { color: #4A90D9; }
+.text-income { color: #52C41A; }
+.text-expense { color: #FF4D4F; }
+.text-warning { color: #FAAD14; }
+.text-secondary { color: #6B7280; }
+.text-light { color: #9CA3AF; }
+.text-white { color: #FFFFFF; }
+
+.font-bold { font-weight: 600; }
+.font-medium { font-weight: 500; }
+.text-sm { font-size: 22rpx; }
+.text-xs { font-size: 20rpx; }
+.text-lg { font-size: 32rpx; }
+.text-xl { font-size: 36rpx; }
+.text-xxl { font-size: 48rpx; }
+
+/* 间距 */
+.mt-10 { margin-top: 10rpx; }
+.mt-20 { margin-top: 20rpx; }
+.mt-30 { margin-top: 30rpx; }
+.mb-10 { margin-bottom: 10rpx; }
+.mb-20 { margin-bottom: 20rpx; }
+.mr-10 { margin-right: 10rpx; }
+.mr-20 { margin-right: 20rpx; }
+.ml-10 { margin-left: 10rpx; }
+.ml-20 { margin-left: 20rpx; }
+.p-10 { padding: 10rpx; }
+.p-20 { padding: 20rpx; }
+.p-24 { padding: 24rpx; }
+
+/* 按钮 */
+.btn-primary {
+  background: linear-gradient(135deg, #4A90D9, #357ABD);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 44rpx;
+  padding: 22rpx 48rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary:active {
+  opacity: 0.85;
+}
+
+.btn-secondary {
+  background: #F0F4FF;
+  color: #4A90D9;
+  border: 2rpx solid #4A90D9;
+  border-radius: 44rpx;
+  padding: 20rpx 48rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  text-align: center;
+}
+
+.btn-danger {
+  background: #FFF2F0;
+  color: #FF4D4F;
+  border: 2rpx solid #FF4D4F;
+  border-radius: 44rpx;
+  padding: 20rpx 48rpx;
+  font-size: 28rpx;
+  text-align: center;
+}
+
+.btn-small {
+  padding: 12rpx 28rpx;
+  font-size: 24rpx;
+  border-radius: 30rpx;
+}
+
+/* 分割线 */
+.divider {
+  height: 2rpx;
+  background: #F0F0F0;
+  margin: 16rpx 0;
+}
+
+/* 标签 */
+.tag {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 20rpx;
+  margin-right: 8rpx;
+}
+
+.tag-income {
+  background: #F6FFED;
+  color: #52C41A;
+  border: 2rpx solid #B7EB8F;
+}
+
+.tag-expense {
+  background: #FFF2F0;
+  color: #FF4D4F;
+  border: 2rpx solid #FFCCC7;
+}
+
+.tag-wechat {
+  background: #E8F5E9;
+  color: #07C160;
+}
+
+.tag-alipay {
+  background: #E3F2FD;
+  color: #1677FF;
+}
+
+/* 输入框 */
+.input-field {
+  background: #F9FAFB;
+  border: 2rpx solid #E5E7EB;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  color: #1A1A2E;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input-field:focus {
+  border-color: #4A90D9;
+}
+
+/* 弹窗遮罩 */
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* 滚动容器 */
+.scroll-container {
+  height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 空状态占位 */
+.skeleton {
+  background: linear-gradient(90deg, #F0F0F0 25%, #E0E0E0 50%, #F0F0F0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8rpx;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

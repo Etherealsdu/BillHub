@@ -1,0 +1,97 @@
+<view class="page-container">
+  <view class="filter-bar card">
+    <view class="flex-row" style="gap: 12rpx; flex-wrap: wrap;">
+      <view
+        class="filter-tag {{filterType === 'expense' ? 'active' : ''}}"
+        data-value="expense"
+        bindtap="onFilterType"
+      >
+        <text class="dot-red"></text>支出
+      </view>
+      <view
+        class="filter-tag {{filterType === 'income' ? 'active' : ''}}"
+        data-value="income"
+        bindtap="onFilterType"
+      >
+        <text class="dot-green"></text>收入
+      </view>
+      <view
+        class="filter-tag {{filterCategory ? 'active' : ''}}"
+        bindtap="toggleFilterPanel"
+      >
+        📂 {{filterCategoryName || '分类'}}
+      </view>
+      <picker mode="date" bindchange="onFilterDate">
+        <view class="filter-tag {{filterDate ? 'active' : ''}}">
+          📅 {{filterDate || '日期'}}
+        </view>
+      </picker>
+      <view wx:if="{{filterType || filterCategory || filterDate}}" class="filter-tag clear-btn" bindtap="clearFilters">
+        ✕ 清除
+      </view>
+    </view>
+    <view class="flex-row flex-between mt-10">
+      <view class="flex-row" style="gap: 10rpx;">
+        <view wx:if="{{!batchMode}}" class="action-btn" bindtap="onAddBill">+ 记一笔</view>
+        <view wx:if="{{!batchMode}}" class="action-btn" bindtap="enterBatchMode">批量操作</view>
+        <view wx:if="{{batchMode}}" class="action-btn" bindtap="onBatchCategory">改分类</view>
+        <view wx:if="{{batchMode}}" class="action-btn danger" bindtap="onBatchDelete">删除</view>
+        <view wx:if="{{batchMode}}" class="action-btn" bindtap="exitBatchMode">退出</view>
+      </view>
+      <text wx:if="{{batchMode}}" class="text-sm text-light">已选 {{selectedIds.length}} 条</text>
+    </view>
+  </view>
+
+  <view class="filter-panel card" wx:if="{{showFilterPanel}}">
+    <view class="panel-title">选择分类</view>
+    <view class="category-grid">
+      <view
+        wx:for="{{categories}}"
+        wx:key="id"
+        class="cat-item {{filterCategory === item.id ? 'active' : ''}}"
+        data-value="{{item.id}}"
+        data-name="{{item.name}}"
+        bindtap="onFilterCategory"
+      >
+        <text class="cat-icon">{{item.icon || '📦'}}</text>
+        <text class="cat-name">{{item.name}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="bill-list">
+    <view wx:if="{{loading}}" class="skeleton-list">
+      <view class="skeleton-item" wx:for="{{4}}" wx:key="*this">
+        <view class="skeleton skeleton-icon"></view>
+        <view class="skeleton-content">
+          <view class="skeleton skeleton-line w-60"></view>
+          <view class="skeleton skeleton-line w-40 mt-10"></view>
+        </view>
+        <view class="skeleton skeleton-line w-30"></view>
+      </view>
+    </view>
+
+    <view wx:elif="{{filteredBills.length === 0}}">
+      <empty-state
+        icon="📭"
+        title="没有找到账单"
+        description="试试调整筛选条件或同步新账单"
+        showAction="{{true}}"
+        actionText="记一笔"
+        bind:action="onAddBill"
+      />
+    </view>
+
+    <view wx:else class="bill-items card">
+      <bill-card
+        wx:for="{{filteredBills}}"
+        wx:key="id"
+        bill="{{item}}"
+        showDate="{{true}}"
+        showSource="{{true}}"
+        bind:click="onBillClick"
+        bind:longpress="onBillLongPress"
+      />
+    </view>
+  </view>
+</view>

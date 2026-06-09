@@ -1,0 +1,110 @@
+<view class="page-container">
+  <view class="type-selector card flex-row">
+    <view
+      class="type-btn {{form.type === 'expense' ? 'active expense' : ''}}"
+      data-type="expense"
+      bindtap="onTypeChange"
+    >
+      <text class="type-icon">📤</text>
+      <text>支出</text>
+    </view>
+    <view
+      class="type-btn {{form.type === 'income' ? 'active income' : ''}}"
+      data-type="income"
+      bindtap="onTypeChange"
+    >
+      <text class="type-icon">📥</text>
+      <text>收入</text>
+    </view>
+    <view
+      class="type-btn {{form.type === 'transfer' ? 'active transfer' : ''}}"
+      data-type="transfer"
+      bindtap="onTypeChange"
+    >
+      <text class="type-icon">🔄</text>
+      <text>转账</text>
+    </view>
+  </view>
+
+  <view class="amount-section card">
+    <view class="amount-label">金额</view>
+    <view class="amount-input-wrap">
+      <text class="currency-symbol">¥</text>
+      <input
+        class="amount-input"
+        type="digit"
+        value="{{form.amount}}"
+        placeholder="0.00"
+        bindinput="onAmountInput"
+        focus="{{!isEdit}}"
+      />
+    </view>
+  </view>
+
+  <view class="form-card card">
+    <view class="form-row flex-between">
+      <text class="form-label">分类</text>
+      <view class="form-value flex-row" bindtap="openCategoryPicker">
+        <text class="form-cat-icon">{{form.categoryIcon || '📦'}}</text>
+        <text class="form-cat-name">{{form.categoryName || '请选择'}}</text>
+        <text class="text-light text-sm ml-10">▸</text>
+      </view>
+    </view>
+    <view class="divider"></view>
+    <view class="form-row flex-between">
+      <text class="form-label">日期</text>
+      <picker mode="date" value="{{form.date}}" bindchange="onDateChange">
+        <view class="form-value">{{form.date}}</view>
+      </picker>
+    </view>
+    <view class="divider"></view>
+    <view class="form-row flex-between">
+      <text class="form-label">时间</text>
+      <picker mode="time" value="{{form.time}}" bindchange="onTimeChange">
+        <view class="form-value">{{form.time}}</view>
+      </picker>
+    </view>
+    <view class="divider"></view>
+    <view class="form-row flex-between">
+      <text class="form-label">来源</text>
+      <picker mode="selector" range="{{['手动', '微信', '支付宝']}}" value="{{['manual', 'wechat', 'alipay'].indexOf(form.source)}}" bindchange="onSourceChange">
+        <view class="form-value">{{form.source === 'manual' ? '手动' : form.source === 'wechat' ? '微信' : '支付宝'}}</view>
+      </picker>
+    </view>
+    <view class="divider"></view>
+    <view class="form-row">
+      <text class="form-label">备注</text>
+      <input class="input-field mt-10" value="{{form.remark}}" placeholder="添加备注信息" bindinput="onRemarkInput" maxlength="50" />
+    </view>
+  </view>
+
+  <view class="action-buttons">
+    <view class="btn-primary save-btn" bindtap="onSave">
+      {{saving ? '保存中...' : (isEdit ? '保存修改' : '添加账单')}}
+    </view>
+    <view wx:if="{{isEdit}}" class="btn-danger delete-btn" bindtap="onDelete">
+      删除此账单
+    </view>
+  </view>
+
+  <!-- 分类选择弹窗 -->
+  <view wx:if="{{showCategoryPicker}}" class="mask" bindtap="closeCategoryPicker"></view>
+  <view wx:if="{{showCategoryPicker}}" class="category-picker">
+    <view class="picker-header">
+      <text class="picker-title">选择{{form.type === 'expense' ? '支出' : '收入'}}分类</text>
+      <text class="picker-close" bindtap="closeCategoryPicker">✕</text>
+    </view>
+    <view class="picker-grid">
+      <view
+        wx:for="{{pickerCategories}}"
+        wx:key="id"
+        class="picker-item {{form.category === item.id ? 'active' : ''}}"
+        data-category="{{item}}"
+        bindtap="selectCategory"
+      >
+        <text class="picker-icon">{{item.icon || '📦'}}</text>
+        <text class="picker-name">{{item.name}}</text>
+      </view>
+    </view>
+  </view>
+</view>

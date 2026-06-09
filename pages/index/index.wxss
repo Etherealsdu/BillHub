@@ -1,0 +1,167 @@
+.page-container {
+  padding: 20rpx 30rpx 40rpx;
+}
+
+.header-section {
+  margin-bottom: 24rpx;
+}
+
+.greeting {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1A1A2E;
+}
+
+.subtitle {
+  margin-top: 6rpx;
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #4A90D9, #357ABD);
+  border-radius: 44rpx;
+  padding: 16rpx 28rpx;
+  color: #FFFFFF;
+  gap: 8rpx;
+}
+
+.add-btn:active {
+  opacity: 0.85;
+}
+
+.add-icon {
+  font-size: 32rpx;
+  font-weight: 300;
+}
+
+.add-text {
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+.today-summary .summary-title {
+  margin-bottom: 4rpx;
+}
+
+.summary-item {
+  flex: 1;
+  background: #F9FAFB;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  text-align: center;
+}
+
+.summary-label {
+  font-size: 22rpx;
+  color: #9CA3AF;
+  display: block;
+  margin-bottom: 6rpx;
+}
+
+.summary-value {
+  font-size: 34rpx;
+  font-weight: 700;
+  display: block;
+}
+
+.sync-btn {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  background: #F0F4FF;
+  border-radius: 30rpx;
+  padding: 8rpx 20rpx;
+  color: #4A90D9;
+}
+
+.sync-btn:active {
+  background: #E0E8FF;
+}
+
+.sync-icon {
+  font-size: 24rpx;
+}
+
+.chart-container {
+  overflow-x: auto;
+}
+
+.chart-bars {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 8rpx;
+  min-height: 180rpx;
+  padding-top: 20rpx;
+}
+
+.chart-bar-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.bar-wrap {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 4rpx;
+  height: 160rpx;
+}
+
+.bar {
+  width: 16rpx;
+  border-radius: 8rpx 8rpx 4rpx 4rpx;
+  min-height: 4rpx;
+  transition: height 0.3s ease;
+}
+
+.bar-expense {
+  background: linear-gradient(180deg, #FF6B6B, #FF4D4F);
+}
+
+.bar-income {
+  background: linear-gradient(180deg, #73D13D, #52C41A);
+}
+
+.bar-label {
+  font-size: 18rpx;
+  color: #9CA3AF;
+  margin-top: 8rpx;
+}
+
+.chart-legend {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 30rpx;
+  margin-top: 16rpx;
+}
+
+.legend-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 22rpx;
+  color: #6B7280;
+}
+
+.legend-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 4rpx;
+}
+
+.dot-expense { background: #FF4D4F; }
+.dot-income { background: #52C41A; }
+
+.recent-section .recent-list {
+  margin-top: 12rpx;
+}
+
+.sync-info {
+  padding: 20rpx 0;
+}
