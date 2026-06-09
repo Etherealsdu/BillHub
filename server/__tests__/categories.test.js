@@ -90,7 +90,7 @@ describe('PUT /api/categories/:id', () => {
   })
 
   test('系统分类不可修改', async () => {
-    const res = await request(app).put('/api/categories/sys_exp_1').set('Authorization', 'Bearer ' + token).send({ name: '改了' })
+    const res = await request(app).put('/api/categories/sys_exp_01').set('Authorization', 'Bearer ' + token).send({ name: '改了' })
     expect(res.status).toBe(403)
   })
 
@@ -117,7 +117,7 @@ describe('DELETE /api/categories/:id', () => {
   })
 
   test('系统分类不可删除', async () => {
-    const res = await request(app).delete('/api/categories/sys_exp_1').set('Authorization', 'Bearer ' + token)
+    const res = await request(app).delete('/api/categories/sys_exp_01').set('Authorization', 'Bearer ' + token)
     expect(res.status).toBe(403)
   })
 

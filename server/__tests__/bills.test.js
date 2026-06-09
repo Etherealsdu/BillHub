@@ -125,9 +125,22 @@ describe('POST /api/bills', () => {
     expect(res.body.error).toContain('缺少必填字段')
   })
 
-  test('创建 amount 为 0 的账单', async () => {
+  test('创建 amount 为 0 的账单被拒绝', async () => {
     const res = await request(app).post('/api/bills').set('Authorization', 'Bearer ' + token).send(createBill({ amount: 0 }))
-    expect(res.status).toBe(201)
+    expect(res.status).toBe(400)
+    expect(res.body.error).toContain('金额')
+  })
+
+  test('无效 type 返回 400', async () => {
+    const res = await request(app).post('/api/bills').set('Authorization', 'Bearer ' + token).send(createBill({ type: 'transfer' }))
+    expect(res.status).toBe(400)
+    expect(res.body.error).toContain('type 无效')
+  })
+
+  test('NaN amount 返回 400', async () => {
+    const res = await request(app).post('/api/bills').set('Authorization', 'Bearer ' + token).send(createBill({ amount: 'abc' }))
+    expect(res.status).toBe(400)
+    expect(res.body.error).toContain('金额')
   })
 })
 
@@ -181,6 +194,13 @@ describe('POST /api/bills/batch', () => {
 
     const getRes = await request(app).get('/api/bills').set('Authorization', 'Bearer ' + token)
     expect(getRes.body.total).toBe(0)
+  })
+
+  test('超过 100 条拒绝', async () => {
+    const bigIds = Array.from({ length: 101 }, (_, i) => 'id_' + i)
+    const res = await request(app).post('/api/bills/batch').set('Authorization', 'Bearer ' + token).send({ ids: bigIds, action: 'delete' })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toContain('100')
   })
 
   test('批量修改分类', async () => {
@@ -239,6 +259,6 @@ describe('POST /api/bills/sync', () => {
     wechat.syncWechatBills.mockRejectedValueOnce(new Error('同步服务异常'))
     const res = await request(app).post('/api/bills/sync').set('Authorization', 'Bearer ' + token).send({ source: 'wechat' })
     expect(res.status).toBe(500)
-    expect(res.body.error).toContain('同步服务异常')
+    expect(res.body.error).toBe('同步失败')
   })
 })

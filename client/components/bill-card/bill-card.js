@@ -24,7 +24,7 @@ Component({
 
   observers: {
     'bill': function (bill) {
-      if (!bill || !bill.amount) return
+      if (!bill || bill.amount == null) return
       const isExpense = bill.type === 'expense'
       const absAmount = Math.abs(bill.amount)
       const d = new Date(bill.date)

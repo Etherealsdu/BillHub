@@ -31,74 +31,18 @@ router.get('/', (req, res) => {
 })
 
 /**
- * POST /api/bills
- * 新增账单
- */
-router.post('/', (req, res) => {
-  const { type, amount, category, categoryName, categoryIcon, date, source, remark } = req.body
-  if (!type || amount == null || !date) {
-    return res.status(400).json({ error: '缺少必填字段(type/amount/date)' })
-  }
-  const bill = {
-    id: `bill_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
-    userId: req.userId,
-    type,
-    amount: Number(amount),
-    category: category || '',
-    categoryName: categoryName || '',
-    categoryIcon: categoryIcon || '📦',
-    date,
-    source: source || 'manual',
-    remark: remark || '',
-    syncSource: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }
-  db.insert('bills', bill)
-  res.status(201).json(bill)
-})
-
-/**
- * PUT /api/bills/:id
- * 更新账单
- */
-router.put('/:id', (req, res) => {
-  const existing = db.findOne('bills', b => b.id === req.params.id && b.userId === req.userId)
-  if (!existing) return res.status(404).json({ error: '账单不存在' })
-
-  const { type, amount, category, categoryName, categoryIcon, date, source, remark } = req.body
-  const updated = db.update('bills', b => b.id === req.params.id, {
-    type: type ?? existing.type,
-    amount: amount != null ? Number(amount) : existing.amount,
-    category: category ?? existing.category,
-    categoryName: categoryName ?? existing.categoryName,
-    categoryIcon: categoryIcon ?? existing.categoryIcon,
-    date: date ?? existing.date,
-    source: source ?? existing.source,
-    remark: remark ?? existing.remark,
-    updatedAt: new Date().toISOString(),
-  })
-  res.json(updated)
-})
-
-/**
- * DELETE /api/bills/:id
- * 删除账单
- */
-router.delete('/:id', (req, res) => {
-  const removed = db.remove('bills', b => b.id === req.params.id && b.userId === req.userId)
-  if (removed === 0) return res.status(404).json({ error: '账单不存在' })
-  res.json({ success: true })
-})
-
-/**
  * POST /api/bills/batch
  * 批量操作：改分类 / 删除
+ * (必须在 POST / 之前注册，否则 /batch 会被 / 匹配)
  */
 router.post('/batch', (req, res) => {
   const { ids, action, category, categoryName, categoryIcon } = req.body
   if (!ids || !Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({ error: '缺少 ids' })
+  }
+
+  if (ids.length > 100) {
+    return res.status(400).json({ error: '单次最多操作 100 条' })
   }
 
   let affected = 0
@@ -156,8 +100,86 @@ router.post('/sync', async (req, res) => {
     res.json({ success: true, synced, total: remoteBills.length })
   } catch (e) {
     console.error('[Sync] 同步失败:', e.message)
-    res.status(500).json({ error: '同步失败: ' + e.message })
+    res.status(500).json({ error: '同步失败' })
   }
+})
+
+/**
+ * POST /api/bills
+ * 新增账单
+ */
+router.post('/', (req, res) => {
+  const { type, amount, category, categoryName, categoryIcon, date, source, remark } = req.body
+  if (!type || amount == null || !date) {
+    return res.status(400).json({ error: '缺少必填字段(type/amount/date)' })
+  }
+  if (!['expense', 'income'].includes(type)) {
+    return res.status(400).json({ error: 'type 无效' })
+  }
+  const numAmount = Number(amount)
+  if (!Number.isFinite(numAmount) || numAmount === 0) {
+    return res.status(400).json({ error: '金额无效' })
+  }
+
+  const bill = {
+    id: `bill_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+    userId: req.userId,
+    type,
+    amount: numAmount,
+    category: category || '',
+    categoryName: categoryName || '',
+    categoryIcon: categoryIcon || '📦',
+    date,
+    source: ['manual', 'wechat', 'alipay'].includes(source) ? source : 'manual',
+    remark: remark || '',
+    syncSource: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
+  db.insert('bills', bill)
+  res.status(201).json(bill)
+})
+
+/**
+ * PUT /api/bills/:id
+ * 更新账单
+ */
+router.put('/:id', (req, res) => {
+  const existing = db.findOne('bills', b => b.id === req.params.id && b.userId === req.userId)
+  if (!existing) return res.status(404).json({ error: '账单不存在' })
+
+  const { type, amount, category, categoryName, categoryIcon, date, source, remark } = req.body
+  if (type && !['expense', 'income'].includes(type)) {
+    return res.status(400).json({ error: 'type 无效' })
+  }
+  const updates = { updatedAt: new Date().toISOString() }
+  if (type !== undefined) updates.type = type
+  if (amount != null) {
+    const numAmount = Number(amount)
+    if (!Number.isFinite(numAmount) || numAmount === 0) {
+      return res.status(400).json({ error: '金额无效' })
+    }
+    updates.amount = numAmount
+  }
+  if (category !== undefined) updates.category = category
+  if (categoryName !== undefined) updates.categoryName = categoryName
+  if (categoryIcon !== undefined) updates.categoryIcon = categoryIcon
+  if (date !== undefined) updates.date = date
+  if (source !== undefined) updates.source = ['manual', 'wechat', 'alipay'].includes(source) ? source : existing.source
+  if (remark !== undefined) updates.remark = remark
+
+  const updated = db.update('bills', b => b.id === req.params.id && b.userId === req.userId, updates)
+  res.json(updated)
+})
+
+/**
+ * DELETE /api/bills/:id
+ * 删除账单
+ */
+router.delete('/:id', (req, res) => {
+  const removed = db.remove('bills', b => b.id === req.params.id && b.userId === req.userId)
+  if (removed === 0) return res.status(404).json({ error: '账单不存在' })
+  res.json({ success: true })
 })
 
 module.exports = router

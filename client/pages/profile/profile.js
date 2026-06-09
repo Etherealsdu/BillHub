@@ -84,11 +84,9 @@ Page({
             self.setData({ alipayBound: true })
             util.hideLoading()
             util.showSuccess('支付宝授权成功')
-          }).catch(() => {
-            storage.updateSetting('alipayBound', true)
-            self.setData({ alipayBound: true })
+          }).catch(err => {
             util.hideLoading()
-            util.showSuccess('支付宝授权成功')
+            util.showError('授权失败: ' + (err.message || '网络错误'))
           })
         }
       }
@@ -102,17 +100,18 @@ Page({
   },
 
   onSyncIntervalChange(e) {
-    const val = e.detail.value
-    storage.updateSetting('syncInterval', parseInt(val))
-    this.setData({ syncInterval: parseInt(val) })
+    const intervals = [12, 24, 48, 168]
+    const val = intervals[e.detail.value]
+    storage.updateSetting('syncInterval', val)
+    this.setData({ syncInterval: val })
   },
 
   onSyncNow() {
     const self = this
     util.showLoading('正在同步...')
     api.syncBills('wechat')
-      .then(r1 => api.syncBills('alipay'))
-      .then(r2 => {
+      .then(r1 => api.syncBills('alipay').then(r2 => ({ r1, r2 })))
+      .then(({ r1, r2 }) => {
         util.hideLoading()
         const total = (r1?.synced || 0) + (r2?.synced || 0)
         util.showSuccess(total > 0 ? `同步完成，新增${total}条` : '没有新账单')

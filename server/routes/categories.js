@@ -26,13 +26,14 @@ router.post('/', (req, res) => {
   const { name, icon, type } = req.body
   if (!name || !type) return res.status(400).json({ error: '缺少 name 或 type' })
   if (!['expense', 'income'].includes(type)) return res.status(400).json({ error: 'type 无效' })
+  if (name.trim().length > 10) return res.status(400).json({ error: '分类名称最多 10 个字符' })
 
   const existing = db.find('categories', c => c.userId === req.userId && c.type === type)
   const maxOrder = existing.reduce((m, c) => Math.max(m, c.sortOrder), 0)
   const cat = {
     id: `cus_${type}_${Date.now()}`,
     userId: req.userId,
-    name,
+    name: name.trim(),
     icon: icon || '📁',
     type,
     isSystem: 0,
@@ -41,6 +42,20 @@ router.post('/', (req, res) => {
   }
   db.insert('categories', cat)
   res.status(201).json(fmt(cat))
+})
+
+/**
+ * PUT /api/categories/reorder/batch
+ * 批量调整排序
+ * (必须在 PUT /:id 之前注册，否则 /reorder/batch 会被 /:id 匹配)
+ */
+router.put('/reorder/batch', (req, res) => {
+  const { ids } = req.body
+  if (!ids || !Array.isArray(ids)) return res.status(400).json({ error: '缺少 ids' })
+  ids.forEach((id, i) => {
+    db.update('categories', c => c.id === id && c.userId === req.userId, { sortOrder: i + 1 })
+  })
+  res.json({ success: true })
 })
 
 /**
@@ -53,8 +68,8 @@ router.put('/:id', (req, res) => {
   if (cat.isSystem) return res.status(403).json({ error: '系统分类不可修改' })
 
   const { name, icon } = req.body
-  const updated = db.update('categories', c => c.id === req.params.id, {
-    name: name || cat.name,
+  const updated = db.update('categories', c => c.id === req.params.id && c.userId === req.userId, {
+    name: (name || cat.name).trim(),
     icon: icon || cat.icon,
   })
   res.json(fmt(updated))
@@ -69,22 +84,9 @@ router.delete('/:id', (req, res) => {
   if (!cat) return res.status(404).json({ error: '分类不存在' })
   if (cat.isSystem) return res.status(403).json({ error: '系统分类不可删除' })
 
-  db.remove('categories', c => c.id === req.params.id)
+  db.remove('categories', c => c.id === req.params.id && c.userId === req.userId)
   db.find('bills', b => b.userId === req.userId && b.category === req.params.id).forEach(b => {
     db.update('bills', bill => bill.id === b.id, { category: '', categoryName: '未分类', categoryIcon: '📦', updatedAt: new Date().toISOString() })
-  })
-  res.json({ success: true })
-})
-
-/**
- * PUT /api/categories/reorder/batch
- * 批量调整排序
- */
-router.put('/reorder/batch', (req, res) => {
-  const { ids } = req.body
-  if (!ids || !Array.isArray(ids)) return res.status(400).json({ error: '缺少 ids' })
-  ids.forEach((id, i) => {
-    db.update('categories', c => c.id === id && c.userId === req.userId, { sortOrder: i + 1 })
   })
   res.json({ success: true })
 })

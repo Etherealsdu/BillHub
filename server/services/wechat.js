@@ -53,4 +53,4 @@ async function syncWechatBills(cursor, userId) {
   return bills
 }
 
-module.exports = { wechatCode2Session, syncWechatBills, syncAlipayBills: syncWechatBills }
+module.exports = { wechatCode2Session, syncWechatBills }

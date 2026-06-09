@@ -104,6 +104,6 @@ describe('错误处理', () => {
     axios.get.mockRejectedValueOnce(new Error('网络错误'))
     const res = await request(app).post('/api/auth/login').send({ code: 'bad_code' })
     expect(res.status).toBe(500)
-    expect(res.body.error).toContain('网络错误')
+    expect(res.body.error).toBe('登录失败')
   })
 })

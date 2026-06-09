@@ -51,7 +51,7 @@ router.post('/login', async (req, res) => {
     })
   } catch (e) {
     console.error('[Auth] 登录失败:', e.message)
-    res.status(500).json({ error: '登录失败: ' + e.message })
+    res.status(500).json({ error: '登录失败' })
   }
 })
 
@@ -61,14 +61,18 @@ router.post('/login', async (req, res) => {
  */
 router.post('/update-profile', require('../middleware/auth'), (req, res) => {
   const { nickname, avatarUrl } = req.body
-  db.update('users', u => u.id === req.userId, {
-    nickname: nickname || '',
-    avatarUrl: avatarUrl || '',
-    updatedAt: new Date().toISOString(),
-  })
+  const updates = { updatedAt: new Date().toISOString() }
+  if (nickname !== undefined) updates.nickname = String(nickname).trim().slice(0, 50) || ''
+  if (avatarUrl !== undefined) updates.avatarUrl = String(avatarUrl).trim().slice(0, 500) || ''
+
+  db.update('users', u => u.id === req.userId, updates)
   res.json({ success: true })
 })
 
+/**
+ * 初始化默认分类
+ * ID 格式使用两位数字补齐 (sys_exp_01, sys_inc_01)
+ */
 function initDefaultCategories(userId) {
   const expenseCats = [
     { name: '餐饮', icon: '🍜' }, { name: '交通', icon: '🚗' },
@@ -84,10 +88,10 @@ function initDefaultCategories(userId) {
     { name: '其他收入', icon: '💰' },
   ]
   expenseCats.forEach((c, i) => {
-    db.insert('categories', { id: `sys_exp_${i + 1}`, userId, name: c.name, icon: c.icon, type: 'expense', isSystem: 1, sortOrder: i + 1, createdAt: new Date().toISOString() })
+    db.insert('categories', { id: `sys_exp_${String(i + 1).padStart(2, '0')}`, userId, name: c.name, icon: c.icon, type: 'expense', isSystem: 1, sortOrder: i + 1, createdAt: new Date().toISOString() })
   })
   incomeCats.forEach((c, i) => {
-    db.insert('categories', { id: `sys_inc_${i + 1}`, userId, name: c.name, icon: c.icon, type: 'income', isSystem: 1, sortOrder: i + 1, createdAt: new Date().toISOString() })
+    db.insert('categories', { id: `sys_inc_${String(i + 1).padStart(2, '0')}`, userId, name: c.name, icon: c.icon, type: 'income', isSystem: 1, sortOrder: i + 1, createdAt: new Date().toISOString() })
   })
 }
 

@@ -68,6 +68,7 @@ Page({
 
   onTypeChange(e) {
     const type = e.currentTarget.dataset.type
+    if (type === 'transfer') return
     const cats = type === 'expense' ? this.data.expenseCategories : this.data.incomeCategories
     const defaultCat = cats.length > 0 ? cats[0] : { id: '', name: '', icon: '📦' }
     this.setData({
@@ -81,6 +82,8 @@ Page({
   onAmountInput(e) {
     let val = e.detail.value
     val = val.replace(/[^\d.]/g, '')
+    const parts = val.split('.')
+    if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('')
     const dotIdx = val.indexOf('.')
     if (dotIdx > -1 && val.length - dotIdx > 3) {
       val = val.substring(0, dotIdx + 3)
@@ -97,7 +100,8 @@ Page({
   },
 
   onSourceChange(e) {
-    this.setData({ 'form.source': e.detail.value })
+    const sources = ['manual', 'wechat', 'alipay']
+    this.setData({ 'form.source': sources[e.detail.value] })
   },
 
   onRemarkInput(e) {
