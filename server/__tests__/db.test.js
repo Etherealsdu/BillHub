@@ -104,6 +104,7 @@ describe('边界与异常', () => {
   test('initDB 自动创建不存在的目录', async () => {
     const nestedPath = path.join(os.tmpdir(), 'billhub_test_nested', 'sub', 'test.db')
     db.initDB(nestedPath)
+    await db.flush()
     expect(db.getDB()).toBeTruthy()
     expect(fs.existsSync(nestedPath)).toBe(true)
     await db.closeDB()

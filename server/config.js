@@ -16,6 +16,7 @@ module.exports = {
 
   jwtSecret: process.env.JWT_SECRET || 'billhub-dev-secret-key',
   jwtExpiresIn: '30d',
+  logLevel: process.env.LOG_LEVEL || 'info',
 
   wechat: {
     appid: process.env.WECHAT_APPID || 'wx0000000000000000',

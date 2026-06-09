@@ -3,6 +3,7 @@ const cors = require('cors')
 const morgan = require('morgan')
 const config = require('./config')
 const { initDB } = require('./models/db')
+const { logger } = require('./utils/logger')
 const authRoutes = require('./routes/auth')
 const billRoutes = require('./routes/bills')
 const categoryRoutes = require('./routes/categories')
@@ -10,7 +11,9 @@ const categoryRoutes = require('./routes/categories')
 const app = express()
 
 app.use(cors())
-app.use(morgan('dev'))
+app.use(morgan('combined', {
+  stream: { write: (msg) => logger.info(msg.trim()) },
+}))
 app.use(express.json({ limit: '100kb' }))
 
 app.use('/api/auth', authRoutes)
@@ -28,12 +31,12 @@ app.use('/api', (_, res) => {
 
 // Global error handler
 app.use((err, _, res, _next) => {
-  console.error('[Error]', err.message)
+  logger.error('未捕获异常', { error: err.message, stack: err.stack })
   res.status(500).json({ error: '服务器内部错误' })
 })
 
 initDB()
 
 app.listen(config.port, () => {
-  console.log(`[BillHub] 服务已启动 → http://localhost:${config.port}`)
+  logger.info(`服务已启动 → http://localhost:${config.port}`)
 })

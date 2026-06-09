@@ -1,5 +1,6 @@
 const storage = require('../../utils/storage')
 const util = require('../../utils/util')
+const logger = require('../../utils/logger')
 
 Page({
   data: {
@@ -131,6 +132,7 @@ Page({
         if (res.confirm) {
           storage.deleteBill(bill.id)
           util.showSuccess('已删除')
+          logger.info('删除账单', { billId: bill.id, amount: bill.amount })
           self.loadData()
         }
       }
@@ -177,6 +179,7 @@ Page({
           )
           storage.setBills(updatedBills)
           util.showSuccess(`已修改${self.data.selectedIds.length}条账单分类`)
+          logger.info('批量修改分类', { count: self.data.selectedIds.length, category: cat.name })
           self.loadData()
           self.exitBatchMode()
         }
@@ -200,6 +203,7 @@ Page({
           const updatedBills = bills.filter(b => !idsSet.has(b.id))
           storage.setBills(updatedBills)
           util.showSuccess('已删除')
+          logger.info('批量删除账单', { count: self.data.selectedIds.length })
           self.loadData()
           self.exitBatchMode()
         }

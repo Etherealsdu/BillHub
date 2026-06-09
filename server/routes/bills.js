@@ -3,8 +3,10 @@ const auth = require('../middleware/auth')
 const db = require('../models/db')
 const { syncWechatBills } = require('../services/wechat')
 const { syncAlipayBills } = require('../services/alipay')
+const { createChildLogger } = require('../utils/logger')
 
 const router = Router()
+const log = createChildLogger('BILLS')
 router.use(auth)
 
 /**
@@ -27,6 +29,7 @@ router.get('/', (req, res) => {
   const ps = Number(pageSize)
   const paginated = bills.slice((p - 1) * ps, p * ps)
 
+  log.debug('查询账单', { userId: req.userId, total, filter: { type, category, startDate, endDate } })
   res.json({ bills: paginated, total, page: p, pageSize: ps })
 })
 
@@ -59,6 +62,7 @@ router.post('/batch', (req, res) => {
   } else {
     return res.status(400).json({ error: '无效的 action' })
   }
+  log.info('批量操作', { userId: req.userId, action, count: ids.length, affected })
   res.json({ success: true, affected })
 })
 
@@ -99,7 +103,7 @@ router.post('/sync', async (req, res) => {
 
     res.json({ success: true, synced, total: remoteBills.length })
   } catch (e) {
-    console.error('[Sync] 同步失败:', e.message)
+    log.error('同步失败', { userId: req.userId, source: req.body.source, error: e.message, stack: e.stack })
     res.status(500).json({ error: '同步失败' })
   }
 })
@@ -137,6 +141,7 @@ router.post('/', (req, res) => {
     updatedAt: new Date().toISOString(),
   }
   db.insert('bills', bill)
+  log.info('新增账单', { userId: req.userId, billId: bill.id, amount: bill.amount })
   res.status(201).json(bill)
 })
 
@@ -169,6 +174,7 @@ router.put('/:id', (req, res) => {
   if (remark !== undefined) updates.remark = remark
 
   const updated = db.update('bills', b => b.id === req.params.id && b.userId === req.userId, updates)
+  log.info('更新账单', { userId: req.userId, billId: req.params.id })
   res.json(updated)
 })
 
@@ -179,6 +185,7 @@ router.put('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
   const removed = db.remove('bills', b => b.id === req.params.id && b.userId === req.userId)
   if (removed === 0) return res.status(404).json({ error: '账单不存在' })
+  log.info('删除账单', { userId: req.userId, billId: req.params.id })
   res.json({ success: true })
 })
 

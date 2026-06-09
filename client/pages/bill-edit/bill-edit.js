@@ -1,5 +1,6 @@
 const storage = require('../../utils/storage')
 const util = require('../../utils/util')
+const logger = require('../../utils/logger')
 
 Page({
   data: {
@@ -170,9 +171,11 @@ Page({
     if (this.data.isEdit) {
       storage.updateBill(this.data.billId, billData)
       util.showSuccess('修改成功')
+      logger.info('编辑账单', { billId: this.data.billId, type: billData.type, amount: billData.amount })
     } else {
       storage.addBill(billData)
       util.showSuccess('添加成功')
+      logger.info('新增账单', { type: billData.type, amount: billData.amount, category: billData.categoryName })
     }
 
     setTimeout(() => {
@@ -189,6 +192,7 @@ Page({
         if (res.confirm) {
           storage.deleteBill(self.data.billId)
           util.showSuccess('已删除')
+          logger.info('编辑页删除账单', { billId: self.data.billId })
           setTimeout(() => util.navigateBack(), 300)
         }
       }

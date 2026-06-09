@@ -2,6 +2,7 @@ const storage = require('../../utils/storage')
 const util = require('../../utils/util')
 const api = require('../../utils/api')
 const mock = require('../../utils/mock')
+const logger = require('../../utils/logger')
 
 Page({
   data: {
@@ -22,6 +23,7 @@ Page({
 
   onLoad() {
     mock.initMockData()
+    logger.info('首页加载', { totalBills: storage.getBills().length })
   },
 
   onShow() {
@@ -113,8 +115,10 @@ Page({
             if (result.synced > 0) {
               storage.setLastSyncTime(new Date().toISOString())
               util.showSuccess(`同步成功，新增${result.synced}条账单`)
+              logger.info('同步成功', { source: source, synced: result.synced, total: result.total })
             } else {
               util.showToast('没有新账单需要同步', 'none')
+              logger.info('同步完成无新数据', { source: source })
             }
             self.setData({ loginRetryCount: 0 })
             self.loadData()
@@ -123,9 +127,11 @@ Page({
           .catch(err => {
             util.hideLoading()
             if (err.message === 'UNAUTHORIZED') {
+              logger.warn('同步需重新登录', { loginRetry: self.data.loginRetryCount })
               self.onLoginFirst()
             } else {
               util.showError('同步失败: ' + err.message)
+              logger.error('同步失败', { source: source, error: err.message })
             }
           })
       }
@@ -146,15 +152,17 @@ Page({
         if (res.confirm) {
           util.showLoading('登录中...')
           api.loginWithWechat()
-            .then(() => {
+            .then(data => {
               util.hideLoading()
               util.showSuccess('登录成功')
+              logger.info('登录成功', { userId: data.user?.id })
               self.setData({ loginRetryCount: 0 })
               self.onSyncTap()
             })
-            .catch(() => {
+            .catch(err => {
               util.hideLoading()
               util.showError('登录失败')
+              logger.error('登录失败', { retryCount: retryCount, error: err.message })
               self.setData({ loginRetryCount: retryCount + 1 })
             })
         }

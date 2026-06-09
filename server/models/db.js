@@ -1,6 +1,9 @@
 const path = require('path')
 const fs = require('fs')
 const config = require('../config')
+const { createChildLogger } = require('../utils/logger')
+
+const log = createChildLogger('DB')
 
 /**
  * 轻量级 JSON 文件数据库
@@ -35,7 +38,7 @@ function initDB(testPath) {
     save()
   }
 
-  console.log('[BillHub] 数据库初始化完成, 路径:', dbPath)
+  log.info('数据库初始化完成', { path: dbPath })
   return data
 }
 
@@ -112,4 +115,4 @@ async function resetDB() {
   await flush()
 }
 
-module.exports = { initDB, getDB, save, findOne, find, insert, update, remove, nextUserId, closeDB, resetDB }
+module.exports = { initDB, getDB, save, flush, findOne, find, insert, update, remove, nextUserId, closeDB, resetDB }

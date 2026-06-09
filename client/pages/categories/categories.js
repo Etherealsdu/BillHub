@@ -1,5 +1,6 @@
 const storage = require('../../utils/storage')
 const util = require('../../utils/util')
+const logger = require('../../utils/logger')
 
 Page({
   data: {
@@ -65,6 +66,7 @@ Page({
     const result = storage.updateCategory(this.data.editingCategory.id, { name })
     if (result) {
       util.showSuccess('修改成功')
+      logger.info('修改分类', { id: this.data.editingCategory.id, name: name })
       this.setData({ showEditModal: false, editingCategory: null })
       this.loadCategories()
     } else {
@@ -96,6 +98,7 @@ Page({
             )
             storage.setBills(updatedBills)
             util.showSuccess('已删除')
+            logger.info('删除分类', { id: cat.id, name: cat.name })
             self.loadCategories()
           } else {
             util.showError('删除失败')
@@ -132,6 +135,7 @@ Page({
     }
     storage.addCategory({ name, type, icon: '📁' })
     util.showSuccess('添加成功')
+    logger.info('新增分类', { name: name, type: type })
     this.setData({ showAddModal: false, addName: '' })
     this.loadCategories()
   },

@@ -1,6 +1,7 @@
 const storage = require('../../utils/storage')
 const util = require('../../utils/util')
 const api = require('../../utils/api')
+const logger = require('../../utils/logger')
 
 Page({
   data: {
@@ -61,10 +62,12 @@ Page({
               storage.updateSetting('wechatBound', true)
               self.setData({ wechatBound: true, userInfo: { nickname: user.nickname, avatarUrl: user.avatarUrl } })
               util.showSuccess('微信授权成功')
+              logger.info('微信授权成功', { userId: user.id })
             })
             .catch(err => {
               util.hideLoading()
               util.showError('授权失败: ' + err.message)
+              logger.error('微信授权失败', { error: err.message })
             })
         }
       }
@@ -103,11 +106,13 @@ Page({
         util.hideLoading()
         const total = (r1?.synced || 0) + (r2?.synced || 0)
         util.showSuccess(total > 0 ? `同步完成，新增${total}条` : '没有新账单')
+        logger.info('全平台同步', { wechat: r1?.synced || 0, alipay: r2?.synced || 0 })
         self.loadData()
       })
       .catch(err => {
         util.hideLoading()
         util.showError('同步失败: ' + err.message)
+        logger.error('全平台同步失败', { error: err.message })
       })
   },
 
@@ -123,6 +128,7 @@ Page({
           storage.clearAllData()
           storage.initSystemData()
           util.showSuccess('已清除所有数据')
+          logger.warn('清除所有数据')
           self.loadData()
         }
       }

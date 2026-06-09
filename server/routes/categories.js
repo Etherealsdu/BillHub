@@ -1,8 +1,10 @@
 const { Router } = require('express')
 const auth = require('../middleware/auth')
 const db = require('../models/db')
+const { createChildLogger } = require('../utils/logger')
 
 const router = Router()
+const log = createChildLogger('CATEGORIES')
 router.use(auth)
 
 /**
@@ -41,6 +43,7 @@ router.post('/', (req, res) => {
     createdAt: new Date().toISOString(),
   }
   db.insert('categories', cat)
+  log.info('新增分类', { userId: req.userId, name: cat.name, type: cat.type })
   res.status(201).json(fmt(cat))
 })
 
@@ -55,6 +58,7 @@ router.put('/reorder/batch', (req, res) => {
   ids.forEach((id, i) => {
     db.update('categories', c => c.id === id && c.userId === req.userId, { sortOrder: i + 1 })
   })
+  log.info('分类排序', { userId: req.userId, count: ids.length })
   res.json({ success: true })
 })
 
@@ -72,6 +76,7 @@ router.put('/:id', (req, res) => {
     name: (name || cat.name).trim(),
     icon: icon || cat.icon,
   })
+  log.info('修改分类', { userId: req.userId, id: req.params.id, name: name })
   res.json(fmt(updated))
 })
 
@@ -88,6 +93,7 @@ router.delete('/:id', (req, res) => {
   db.find('bills', b => b.userId === req.userId && b.category === req.params.id).forEach(b => {
     db.update('bills', bill => bill.id === b.id, { category: '', categoryName: '未分类', categoryIcon: '📦', updatedAt: new Date().toISOString() })
   })
+  log.info('删除分类', { userId: req.userId, id: req.params.id, name: cat.name })
   res.json({ success: true })
 })
 

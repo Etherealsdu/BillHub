@@ -3,8 +3,10 @@ const jwt = require('jsonwebtoken')
 const config = require('../config')
 const db = require('../models/db')
 const { wechatCode2Session } = require('../services/wechat')
+const { createChildLogger } = require('../utils/logger')
 
 const router = Router()
+const log = createChildLogger('AUTH')
 
 /**
  * POST /api/auth/login
@@ -31,6 +33,7 @@ router.post('/login', async (req, res) => {
       }
       user = db.insert('users', newUser)
       initDefaultCategories(user.id)
+      log.info('新用户注册', { userId: user.id, openid: session.openid })
     }
 
     const token = jwt.sign(
@@ -50,7 +53,7 @@ router.post('/login', async (req, res) => {
       },
     })
   } catch (e) {
-    console.error('[Auth] 登录失败:', e.message)
+    log.error('登录失败', { error: e.message, stack: e.stack })
     res.status(500).json({ error: '登录失败' })
   }
 })
@@ -66,6 +69,7 @@ router.post('/update-profile', require('../middleware/auth'), (req, res) => {
   if (avatarUrl !== undefined) updates.avatarUrl = String(avatarUrl).trim().slice(0, 500) || ''
 
   db.update('users', u => u.id === req.userId, updates)
+  log.info('用户资料更新', { userId: req.userId })
   res.json({ success: true })
 })
 
