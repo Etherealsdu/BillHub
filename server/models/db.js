@@ -18,8 +18,8 @@ const DEFAULT_DATA = {
   _nextUserId: 1,
 }
 
-function initDB() {
-  dbPath = config.db.path
+function initDB(testPath) {
+  dbPath = testPath || config.db.path
   const dbDir = path.dirname(dbPath)
   if (!fs.existsSync(dbDir)) {
     fs.mkdirSync(dbDir, { recursive: true })
@@ -74,7 +74,7 @@ function update(collection, predicate, updates) {
 
 function remove(collection, predicate) {
   const len = data[collection].length
-  data[collection] = data[collection].filter(predicate)
+  data[collection] = data[collection].filter(item => !predicate(item))
   const removed = len - data[collection].length
   if (removed > 0) save()
   return removed
@@ -88,4 +88,9 @@ function closeDB() {
   if (data) save()
 }
 
-module.exports = { initDB, getDB, save, findOne, find, insert, update, remove, nextUserId, closeDB }
+function resetDB() {
+  data = JSON.parse(JSON.stringify(DEFAULT_DATA))
+  save()
+}
+
+module.exports = { initDB, getDB, save, findOne, find, insert, update, remove, nextUserId, closeDB, resetDB }
