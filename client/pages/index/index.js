@@ -104,30 +104,53 @@ Page({
     wx.showActionSheet({
       itemList: ['同步微信账单', '同步支付宝账单'],
       success(res) {
-        const cursor = storage.getSyncCursor()
-        if (res.tapIndex === 0) {
-          api.syncWechatBills(cursor).then(bills => self.handleSyncResult(bills, 'wechat'))
-        } else {
-          api.syncAlipayBills(cursor).then(bills => self.handleSyncResult(bills, 'alipay'))
-        }
+        const source = res.tapIndex === 0 ? 'wechat' : 'alipay'
+        util.showLoading('正在同步' + (source === 'wechat' ? '微信' : '支付宝') + '账单...')
+        api.syncBills(source)
+          .then(result => {
+            util.hideLoading()
+            if (result.synced > 0) {
+              storage.setLastSyncTime(new Date().toISOString())
+              util.showSuccess(`同步成功，新增${result.synced}条账单`)
+            } else {
+              util.showToast('没有新账单需要同步', 'none')
+            }
+            self.loadData()
+            self.setData({ lastSyncTime: util.formatDateTime(new Date().toISOString()) })
+          })
+          .catch(err => {
+            util.hideLoading()
+            if (err.message === 'UNAUTHORIZED') {
+              self.onLoginFirst()
+            } else {
+              util.showError('同步失败: ' + err.message)
+            }
+          })
       }
     })
   },
 
-  handleSyncResult(newBills, source) {
-    if (!newBills || newBills.length === 0) {
-      util.showToast('没有新账单需要同步', 'none')
-      return
-    }
-    const existing = storage.getBills()
-    const merged = [...newBills, ...existing]
-    merged.sort((a, b) => new Date(b.date) - new Date(a.date))
-    storage.setBills(merged)
-    storage.setSyncCursor(String(Date.now()))
-    storage.setLastSyncTime(new Date().toISOString())
-    util.showSuccess(`同步成功，新增${newBills.length}条账单`)
-    this.loadData()
-    this.setData({ lastSyncTime: util.formatDateTime(new Date().toISOString()) })
+  onLoginFirst() {
+    const self = this
+    wx.showModal({
+      title: '需要登录',
+      content: '请先授权微信登录后再同步账单',
+      success(res) {
+        if (res.confirm) {
+          util.showLoading('登录中...')
+          api.loginWithWechat()
+            .then(() => {
+              util.hideLoading()
+              util.showSuccess('登录成功')
+              self.onSyncTap()
+            })
+            .catch(() => {
+              util.hideLoading()
+              util.showError('登录失败')
+            })
+        }
+      }
+    })
   },
 
   onAddBill() {

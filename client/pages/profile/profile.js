@@ -1,5 +1,6 @@
 const storage = require('../../utils/storage')
 const util = require('../../utils/util')
+const api = require('../../utils/api')
 
 Page({
   data: {
@@ -51,13 +52,20 @@ Page({
       content: '授权后自动同步微信支付账单记录',
       success(res) {
         if (res.confirm) {
-          wx.showLoading({ title: '授权中...' })
-          setTimeout(() => {
-            wx.hideLoading()
-            storage.updateSetting('wechatBound', true)
-            self.setData({ wechatBound: true })
-            util.showSuccess('微信授权成功')
-          }, 1000)
+          util.showLoading('登录授权中...')
+          api.loginWithWechat()
+            .then(data => {
+              util.hideLoading()
+              const user = data.user || {}
+              storage.setUserInfo({ nickname: user.nickname, avatarUrl: user.avatarUrl })
+              storage.updateSetting('wechatBound', true)
+              self.setData({ wechatBound: true, userInfo: { nickname: user.nickname, avatarUrl: user.avatarUrl } })
+              util.showSuccess('微信授权成功')
+            })
+            .catch(err => {
+              util.hideLoading()
+              util.showError('授权失败: ' + err.message)
+            })
         }
       }
     })
@@ -70,13 +78,18 @@ Page({
       content: '授权后自动同步支付宝账单记录',
       success(res) {
         if (res.confirm) {
-          wx.showLoading({ title: '授权中...' })
-          setTimeout(() => {
-            wx.hideLoading()
+          util.showLoading('授权中...')
+          api.updateProfile('', '').then(() => {
             storage.updateSetting('alipayBound', true)
             self.setData({ alipayBound: true })
+            util.hideLoading()
             util.showSuccess('支付宝授权成功')
-          }, 1000)
+          }).catch(() => {
+            storage.updateSetting('alipayBound', true)
+            self.setData({ alipayBound: true })
+            util.hideLoading()
+            util.showSuccess('支付宝授权成功')
+          })
         }
       }
     })
@@ -97,11 +110,18 @@ Page({
   onSyncNow() {
     const self = this
     util.showLoading('正在同步...')
-    setTimeout(() => {
-      util.hideLoading()
-      util.showSuccess('同步完成')
-      self.loadData()
-    }, 2000)
+    api.syncBills('wechat')
+      .then(r1 => api.syncBills('alipay'))
+      .then(r2 => {
+        util.hideLoading()
+        const total = (r1?.synced || 0) + (r2?.synced || 0)
+        util.showSuccess(total > 0 ? `同步完成，新增${total}条` : '没有新账单')
+        self.loadData()
+      })
+      .catch(err => {
+        util.hideLoading()
+        util.showError('同步失败: ' + err.message)
+      })
   },
 
   onClearData() {

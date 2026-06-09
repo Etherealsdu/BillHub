@@ -1,79 +1,89 @@
-# 账单通 BillHub - 微信记账小程序
+# 账单通 BillHub - 微信记账小程序 + 后端服务
 
 ## 项目概述
 
-账单通（BillHub）是一款基于微信小程序原生框架开发的个人记账工具，支持微信支付/支付宝账单自动同步、自定义分类管理、收支统计分析等核心功能。
+账单通（BillHub）是一款基于微信小程序原生框架开发的个人记账工具，支持微信支付/支付宝账单自动同步、自定义分类管理、收支统计分析等核心功能。配套 Node.js 后端服务提供用户认证、数据持久化和账单同步 API。
 
 ## 项目结构
 
 ```
 BillHub/
-├── app.js                          # 应用入口，初始化系统数据
-├── app.json                        # 应用配置，注册页面/组件/导航
-├── app.wxss                        # 全局样式
-├── project.config.json             # 项目配置
-├── sitemap.json                    # 小程序 sitemap
-├── images/                         # 图标资源（占位）
-├── utils/
-│   ├── storage.js                  # 本地存储模块（账单/分类数据读写）
-│   ├── util.js                     # 通用工具函数
-│   ├── api.js                      # API接口对接（微信/支付宝账单同步）
-│   └── mock.js                     # 模拟数据生成（开发阶段使用）
-├── components/
-│   ├── bill-card/                  # 账单卡片组件
-│   ├── stat-card/                  # 统计概览组件
-│   └── empty-state/               # 空状态占位组件
-└── pages/
-    ├── index/                      # 首页（数据概览、同步入口、近期账单）
-    ├── bills/                      # 账单列表页（筛选、批量操作）
-    ├── categories/                 # 分类管理页（系统/自定义分类编辑）
-    ├── profile/                    # 个人中心（授权管理、数据设置）
-    └── bill-edit/                  # 账单编辑页（新增/编辑单笔账单）
+├── client/                         # 微信小程序前端
+│   ├── app.js / app.json / app.wxss
+│   ├── pages/
+│   │   ├── index/                  # 首页（数据概览、同步入口、近期账单）
+│   │   ├── bills/                  # 账单列表页（筛选、批量操作）
+│   │   ├── categories/             # 分类管理页（系统/自定义分类编辑）
+│   │   ├── profile/                # 个人中心（授权管理、数据设置）
+│   │   └── bill-edit/              # 账单编辑页（新增/编辑单笔账单）
+│   ├── components/                 # 公共组件
+│   ├── utils/                      # 工具函数 + API 对接
+│   └── images/                     # 图标资源
+├── server/                         # Node.js 后端服务
+│   ├── app.js                      # Express 入口
+│   ├── config.js                   # 配置
+│   ├── routes/                     # API 路由
+│   ├── models/                     # 数据模型（JSON 文件数据库）
+│   ├── services/                   # 微信/支付宝 SDK 对接
+│   └── middleware/                 # JWT 认证
+├── project.config.json             # 小程序项目配置（miniprogramRoot: client/）
+└── README.md
 ```
 
 ## 部署步骤
 
+## 前端部署（微信小程序）
+
 ### 1. 导入项目
 
-1. 打开微信开发者工具
-2. 点击"导入项目" -> 选择本项目根目录
-3. 填入 AppID（可使用测试号 `wx0000000000000000` 或替换为正式 AppID）
-4. 点击"导入"
+打开微信开发者工具 -> 导入项目 -> 选择本项目根目录，填入 AppID（可使用测试号 `wx0000000000000000`），点击导入。
 
 ### 2. 配置 AppID
 
-修改 `project.config.json` 中的 `appid` 为你的微信小程序 AppID：
+修改 `project.config.json` 中的 `appid` 为你的微信小程序 AppID。
 
-```json
-{
-  "appid": "wx你的AppID"
-}
-```
+### 3. 预览/调试
 
-### 3. 替换图标（可选）
-
-`images/` 目录下为占位 PNG 图标，建议替换为实际设计稿图标：
-- `home.png` / `home-active.png`
-- `bill.png` / `bill-active.png`
-- `category.png` / `category-active.png`
-- `profile.png` / `profile-active.png`
-
-### 4. 配置后端 API（正式环境）
-
-修改 `utils/api.js` 中的 `CONFIG.BASE_URL` 为实际后端服务地址：
-
-```js
-const CONFIG = {
-  BASE_URL: 'https://your-api-domain.com/v1',
-  WECHAT_APPID: 'wx你的AppID',
-  TIMEOUT: 10000
-}
-```
-
-### 5. 预览/调试
-
-- 使用微信开发者工具的"预览"功能扫码在手机上体验
 - 首次启动会自动初始化系统分类并生成 60 条模拟账单数据
+- `client/utils/api.js` 中的 `CONFIG.BASE_URL` 指向后端地址（默认 `http://localhost:3000/api`）
+
+## 后端部署
+
+### 1. 安装依赖
+
+```bash
+cd server
+npm install
+```
+
+### 2. 配置
+
+修改 `server/config.js` 中的微信 AppID/Secret 等配置，或通过环境变量注入。
+
+### 3. 启动
+
+```bash
+npm start
+```
+
+服务默认监听 `http://localhost:3000`，数据文件存储在 `server/data/billhub.db`（JSON 文件）。
+
+### API 列表
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /api/auth/login | 微信 code 登录，返回 JWT |
+| GET  | /api/bills | 账单列表（分页、筛选） |
+| POST | /api/bills | 新增账单 |
+| PUT  | /api/bills/:id | 更新账单 |
+| DELETE | /api/bills/:id | 删除账单 |
+| POST | /api/bills/batch | 批量操作 |
+| POST | /api/bills/sync | 同步微信/支付宝账单 |
+| GET  | /api/categories | 获取分类列表 |
+| POST | /api/categories | 新增分类 |
+| PUT  | /api/categories/:id | 修改分类 |
+| DELETE | /api/categories/:id | 删除分类 |
+| GET  | /api/health | 健康检查 |
 
 ## 功能使用说明
 

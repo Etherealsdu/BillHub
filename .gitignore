@@ -1,4 +1,5 @@
 # 微信开发者工具
+project.config.json
 .DS_Store
 *.log
 node_modules/
@@ -14,5 +15,7 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# 项目
-project.config.json
+# 后端
+server/node_modules/
+server/data/
+server/package-lock.json
