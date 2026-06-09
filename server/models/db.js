@@ -5,10 +5,12 @@ const config = require('../config')
 /**
  * 轻量级 JSON 文件数据库
  * 单文件存储，开发/小规模场景使用，生产环境可替换为 SQL
+ * 使用写队列避免并发写入竞态
  */
 
 let data = null
 let dbPath = ''
+let writeQueue = Promise.resolve()
 
 const DEFAULT_DATA = {
   users: [],
@@ -38,7 +40,16 @@ function initDB(testPath) {
 }
 
 function save() {
-  fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf-8')
+  const writeData = JSON.stringify(data, null, 2)
+  writeQueue = writeQueue.then(() => {
+    return new Promise((resolve, reject) => {
+      fs.writeFile(dbPath, writeData, 'utf-8', (err) => {
+        if (err) reject(err)
+        else resolve()
+      })
+    })
+  })
+  return writeQueue
 }
 
 function getDB() {
@@ -84,13 +95,21 @@ function nextUserId() {
   return data._nextUserId++
 }
 
-function closeDB() {
-  if (data) save()
+async function flush() {
+  await writeQueue
 }
 
-function resetDB() {
+function closeDB() {
+  if (data) {
+    save()
+    return flush()
+  }
+}
+
+async function resetDB() {
   data = JSON.parse(JSON.stringify(DEFAULT_DATA))
   save()
+  await flush()
 }
 
 module.exports = { initDB, getDB, save, findOne, find, insert, update, remove, nextUserId, closeDB, resetDB }

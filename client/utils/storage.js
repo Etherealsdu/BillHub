@@ -78,10 +78,19 @@ function setBills(bills) {
   return safeSet(STORAGE_KEYS.BILLS, bills)
 }
 
+function generateId(prefix) {
+  try {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return prefix + '_' + crypto.randomUUID()
+    }
+  } catch (e) { }
+  return prefix + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+}
+
 function addBill(bill) {
   const bills = getBills()
   const newBill = Object.assign({
-    id: 'bill_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+    id: generateId('bill'),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }, bill)
@@ -118,7 +127,7 @@ function addCategory(cat) {
   const type = cat.type
   if (!cats[type]) cats[type] = []
   const newCat = Object.assign({
-    id: 'cus_' + type + '_' + Date.now(),
+    id: generateId('cus_' + type),
     isSystem: false,
     sortOrder: cats[type].length + 1
   }, cat)
@@ -196,7 +205,9 @@ function updateSetting(key, value) {
 
 function clearAllData() {
   try {
-    Object.values(STORAGE_KEYS).forEach(k => wx.removeStorageSync(k))
+    Object.keys(STORAGE_KEYS).forEach(k => {
+      if (k !== 'SETTINGS') wx.removeStorageSync(STORAGE_KEYS[k])
+    })
     return true
   } catch (e) {
     console.error('[Storage] 清除数据失败:', e)

@@ -16,7 +16,8 @@ Page({
     showChart: false,
     chartData: [],
     totalBills: 0,
-    loading: true
+    loading: true,
+    loginRetryCount: 0
   },
 
   onLoad() {
@@ -115,6 +116,7 @@ Page({
             } else {
               util.showToast('没有新账单需要同步', 'none')
             }
+            self.setData({ loginRetryCount: 0 })
             self.loadData()
             self.setData({ lastSyncTime: util.formatDateTime(new Date().toISOString()) })
           })
@@ -132,6 +134,11 @@ Page({
 
   onLoginFirst() {
     const self = this
+    const retryCount = self.data.loginRetryCount
+    if (retryCount >= 3) {
+      util.showError('登录重试次数过多，请稍后再试')
+      return
+    }
     wx.showModal({
       title: '需要登录',
       content: '请先授权微信登录后再同步账单',
@@ -142,11 +149,13 @@ Page({
             .then(() => {
               util.hideLoading()
               util.showSuccess('登录成功')
+              self.setData({ loginRetryCount: 0 })
               self.onSyncTap()
             })
             .catch(() => {
               util.hideLoading()
               util.showError('登录失败')
+              self.setData({ loginRetryCount: retryCount + 1 })
             })
         }
       }

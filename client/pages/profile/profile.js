@@ -75,21 +75,9 @@ Page({
     const self = this
     wx.showModal({
       title: '支付宝授权',
-      content: '授权后自动同步支付宝账单记录',
-      success(res) {
-        if (res.confirm) {
-          util.showLoading('授权中...')
-          api.updateProfile('', '').then(() => {
-            storage.updateSetting('alipayBound', true)
-            self.setData({ alipayBound: true })
-            util.hideLoading()
-            util.showSuccess('支付宝授权成功')
-          }).catch(err => {
-            util.hideLoading()
-            util.showError('授权失败: ' + (err.message || '网络错误'))
-          })
-        }
-      }
+      content: '支付宝账单同步功能正在开发中，敬请期待',
+      showCancel: false,
+      confirmText: '知道了',
     })
   },
 

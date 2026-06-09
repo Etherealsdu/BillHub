@@ -40,8 +40,7 @@ Page({
       categories: allCats,
       loading: false,
       selectedIds: []
-    })
-    this.applyFilters()
+    }, () => this.applyFilters())
   },
 
   applyFilters() {
@@ -171,9 +170,12 @@ Page({
       success(res) {
         const cat = allCats[res.tapIndex]
         if (cat) {
-          self.data.selectedIds.forEach(id => {
-            storage.updateBill(id, { category: cat.id, categoryName: cat.name, categoryIcon: cat.icon })
-          })
+          const bills = storage.getBills()
+          const idsSet = new Set(self.data.selectedIds)
+          const updatedBills = bills.map(b => 
+            idsSet.has(b.id) ? { ...b, category: cat.id, categoryName: cat.name, categoryIcon: cat.icon } : b
+          )
+          storage.setBills(updatedBills)
           util.showSuccess(`已修改${self.data.selectedIds.length}条账单分类`)
           self.loadData()
           self.exitBatchMode()
@@ -193,7 +195,10 @@ Page({
       content: `确定删除选中的${self.data.selectedIds.length}条账单吗？`,
       success(res) {
         if (res.confirm) {
-          self.data.selectedIds.forEach(id => storage.deleteBill(id))
+          const bills = storage.getBills()
+          const idsSet = new Set(self.data.selectedIds)
+          const updatedBills = bills.filter(b => !idsSet.has(b.id))
+          storage.setBills(updatedBills)
           util.showSuccess('已删除')
           self.loadData()
           self.exitBatchMode()

@@ -4,12 +4,21 @@
  * 支持 JWT token 自动注入、错误统一处理
  */
 
-const CONFIG = {
+const DEFAULT_CONFIG = {
   BASE_URL: 'http://localhost:3000/api',
   TIMEOUT: 10000,
 }
 
+let _config = { ...DEFAULT_CONFIG }
 let _token = null
+
+function getConfig() {
+  return _config
+}
+
+function setConfig(config) {
+  _config = { ..._config, ...config }
+}
 
 function getToken() {
   if (_token) return _token
@@ -34,20 +43,29 @@ function request(url, data = {}, method = 'GET') {
     if (token) header['Authorization'] = 'Bearer ' + token
 
     wx.request({
-      url: CONFIG.BASE_URL + url,
+      url: _config.BASE_URL + url,
       method,
       data,
       header,
-      timeout: CONFIG.TIMEOUT,
+      timeout: _config.TIMEOUT,
       success(res) {
-        if (res.statusCode === 200 || res.statusCode === 201) {
-          resolve(res.data)
-        } else if (res.statusCode === 401) {
+        const { statusCode, data: resData } = res
+        if (statusCode >= 200 && statusCode < 300) {
+          resolve(resData)
+        } else if (statusCode === 401) {
           clearToken()
           wx.showToast({ title: '登录已过期，请重新授权', icon: 'none' })
           reject(new Error('UNAUTHORIZED'))
+        } else if (statusCode === 400) {
+          reject(new Error(resData?.error || '请求参数错误'))
+        } else if (statusCode === 403) {
+          reject(new Error(resData?.error || '无权限访问'))
+        } else if (statusCode === 404) {
+          reject(new Error(resData?.error || '资源不存在'))
+        } else if (statusCode >= 500) {
+          reject(new Error(resData?.error || '服务器内部错误'))
         } else {
-          reject(new Error(res.data?.error || `请求失败(${res.statusCode})`))
+          reject(new Error(resData?.error || `请求失败(${statusCode})`))
         }
       },
       fail(err) {
@@ -88,7 +106,10 @@ function updateProfile(nickname, avatarUrl) {
  * 获取账单列表
  */
 function getBills(params = {}) {
-  const qs = Object.entries(params).filter(([_, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&')
+  const qs = Object.entries(params)
+    .filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+    .join('&')
   return request('/bills' + (qs ? '?' + qs : ''))
 }
 
@@ -124,6 +145,9 @@ function batchBills(ids, action, categoryData) {
  * 同步微信/支付宝账单
  */
 function syncBills(source) {
+  if (source !== 'wechat' && source !== 'alipay') {
+    return Promise.reject(new Error('无效的同步来源'))
+  }
   return request('/bills/sync', { source }, 'POST')
 }
 
@@ -163,7 +187,8 @@ function reorderCategories(ids) {
 }
 
 module.exports = {
-  CONFIG,
+  CONFIG: getConfig,
+  setConfig,
   loginWithWechat,
   updateProfile,
   getToken,

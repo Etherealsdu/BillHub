@@ -151,7 +151,10 @@ Page({
     const amount = form.type === 'expense'
       ? -Math.abs(parseFloat(form.amount))
       : Math.abs(parseFloat(form.amount))
-    const dateStr = `${form.date} ${form.time || '00:00'}`
+    // 修复时区问题：显式构造本地时间
+    const [year, month, day] = form.date.split('-').map(Number)
+    const [hour, minute] = (form.time || '00:00').split(':').map(Number)
+    const billDate = new Date(year, month - 1, day, hour, minute)
 
     const billData = {
       type: form.type,
@@ -159,7 +162,7 @@ Page({
       category: form.category,
       categoryName: form.categoryName,
       categoryIcon: form.categoryIcon,
-      date: new Date(dateStr).toISOString(),
+      date: billDate.toISOString(),
       source: form.source,
       remark: form.remark || ''
     }

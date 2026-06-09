@@ -12,6 +12,9 @@ App({
     const token = api.getToken()
     if (token) {
       console.log('[BillHub] 检测到已有登录 token')
+      this.globalData.isLoggedIn = true
+      const user = storage.getUserInfo()
+      if (user) this.globalData.user = user
     }
   },
 

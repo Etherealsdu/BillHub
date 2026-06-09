@@ -2,6 +2,15 @@
  * 后端服务配置
  * 生产环境通过环境变量覆盖
  */
+const isProduction = process.env.NODE_ENV === 'production'
+
+if (isProduction && !process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET 环境变量必须在生产环境设置')
+}
+if (isProduction && !process.env.WECHAT_SECRET) {
+  throw new Error('WECHAT_SECRET 环境变量必须在生产环境设置')
+}
+
 module.exports = {
   port: process.env.PORT || 3000,
 

@@ -91,11 +91,10 @@ Page({
           const result = storage.deleteCategory(cat.id)
           if (result) {
             const bills = storage.getBills()
-            bills.forEach(b => {
-              if (b.category === cat.id) {
-                storage.updateBill(b.id, { category: '', categoryName: '未分类', categoryIcon: '📦' })
-              }
-            })
+            const updatedBills = bills.map(b => 
+              b.category === cat.id ? { ...b, category: '', categoryName: '未分类', categoryIcon: '📦' } : b
+            )
+            storage.setBills(updatedBills)
             util.showSuccess('已删除')
             self.loadCategories()
           } else {

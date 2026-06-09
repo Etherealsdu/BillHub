@@ -10,8 +10,8 @@ beforeEach(() => {
   db.initDB(testDbPath)
 })
 
-afterEach(() => {
-  db.closeDB()
+afterEach(async () => {
+  await db.closeDB()
   try { fs.unlinkSync(testDbPath) } catch (e) {  }
 })
 
@@ -25,9 +25,9 @@ describe('数据库初始化', () => {
     expect(data._nextUserId).toBe(1)
   })
 
-  test('initDB 从已有文件加载数据', () => {
+  test('initDB 从已有文件加载数据', async () => {
     db.insert('users', { id: 1, name: 'test' })
-    db.closeDB()
+    await db.closeDB()
 
     db.initDB(testDbPath)
     const users = db.find('users', () => true)
@@ -35,9 +35,9 @@ describe('数据库初始化', () => {
     expect(users[0].name).toBe('test')
   })
 
-  test('resetDB 重置为初始状态', () => {
+  test('resetDB 重置为初始状态', async () => {
     db.insert('users', { id: 1 })
-    db.resetDB()
+    await db.resetDB()
     expect(db.find('users', () => true)).toHaveLength(0)
     expect(db.getDB()._nextUserId).toBe(1)
   })
@@ -59,13 +59,13 @@ describe('CRUD 操作', () => {
     expect(db.find('users', u => u.type === 'z')).toHaveLength(0)
   })
 
-  test('insert 添加记录并持久化', () => {
+  test('insert 添加记录并持久化', async () => {
     const item = { id: 1, name: 'new' }
     const result = db.insert('users', item)
     expect(result).toEqual(item)
     expect(db.find('users', () => true)).toHaveLength(1)
 
-    db.closeDB()
+    await db.closeDB()
     db.initDB(testDbPath)
     expect(db.find('users', () => true)).toHaveLength(1)
   })
@@ -101,12 +101,12 @@ describe('CRUD 操作', () => {
 })
 
 describe('边界与异常', () => {
-  test('initDB 自动创建不存在的目录', () => {
+  test('initDB 自动创建不存在的目录', async () => {
     const nestedPath = path.join(os.tmpdir(), 'billhub_test_nested', 'sub', 'test.db')
     db.initDB(nestedPath)
     expect(db.getDB()).toBeTruthy()
     expect(fs.existsSync(nestedPath)).toBe(true)
-    db.closeDB()
+    await db.closeDB()
     try { fs.unlinkSync(nestedPath) } catch (e) {  }
     try { fs.rmdirSync(path.join(os.tmpdir(), 'billhub_test_nested', 'sub')) } catch (e) {  }
     try { fs.rmdirSync(path.join(os.tmpdir(), 'billhub_test_nested')) } catch (e) {  }
