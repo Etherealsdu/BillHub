@@ -292,6 +292,10 @@ Page({
 
   onToggleScope() {
     const newScope = this.data.scope === 'personal' ? 'family' : 'personal'
+    if (newScope === 'family' && !this.data.hasFamily) {
+      util.showToast('请先创建或加入家庭')
+      return
+    }
     storage.updateSetting('scope', newScope)
     this.setData({ scope: newScope })
     this.loadData()

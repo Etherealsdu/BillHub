@@ -9,6 +9,23 @@ const router = Router()
 const log = createChildLogger('BILLS')
 router.use(auth)
 
+// 同步互斥锁：防止同一用户并发同步导致重复插入
+const syncLocks = new Map()
+
+function withSyncLock(userId, fn) {
+  if (!syncLocks.has(userId)) {
+    syncLocks.set(userId, Promise.resolve())
+  }
+  const prev = syncLocks.get(userId)
+  const next = prev.then(() => fn()).finally(() => {
+    if (syncLocks.get(userId) === next) {
+      syncLocks.delete(userId)
+    }
+  })
+  syncLocks.set(userId, next)
+  return next
+}
+
 /**
  * GET /api/bills
  * 查询账单列表
@@ -98,31 +115,35 @@ router.post('/sync', async (req, res) => {
       return res.status(400).json({ error: '无效的同步来源' })
     }
 
-    const cursorRow = db.findOne('syncCursors', c => c.userId === req.userId)
-    const cursor = source === 'wechat' ? cursorRow?.wechatCursor : cursorRow?.alipayCursor
-    const syncFn = source === 'wechat' ? syncWechatBills : syncAlipayBills
-    const remoteBills = await syncFn(cursor, req.userId)
+    const result = await withSyncLock(req.userId, async () => {
+      const cursorRow = db.findOne('syncCursors', c => c.userId === req.userId)
+      const cursor = source === 'wechat' ? cursorRow?.wechatCursor : cursorRow?.alipayCursor
+      const syncFn = source === 'wechat' ? syncWechatBills : syncAlipayBills
+      const remoteBills = await syncFn(cursor, req.userId)
 
-    let synced = 0
-    for (const b of remoteBills) {
-      const exists = db.findOne('bills', bill => bill.id === b.id && bill.userId === req.userId)
-      if (!exists) {
-        db.insert('bills', { ...b, userId: req.userId, source, syncSource: source, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() })
-        synced++
+      let synced = 0
+      for (const b of remoteBills) {
+        const exists = db.findOne('bills', bill => bill.id === b.id && bill.userId === req.userId)
+        if (!exists) {
+          db.insert('bills', { ...b, userId: req.userId, source, syncSource: source, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() })
+          synced++
+        }
       }
-    }
 
-    const newCursor = String(Date.now())
-    if (cursorRow) {
-      const updateKey = source === 'wechat' ? { wechatCursor: newCursor } : { alipayCursor: newCursor }
-      db.update('syncCursors', c => c.userId === req.userId, { ...updateKey, updatedAt: new Date().toISOString() })
-    } else {
-      const entry = { userId: req.userId, wechatCursor: null, alipayCursor: null, updatedAt: new Date().toISOString() }
-      entry[source === 'wechat' ? 'wechatCursor' : 'alipayCursor'] = newCursor
-      db.insert('syncCursors', entry)
-    }
+      const newCursor = String(Date.now())
+      if (cursorRow) {
+        const updateKey = source === 'wechat' ? { wechatCursor: newCursor } : { alipayCursor: newCursor }
+        db.update('syncCursors', c => c.userId === req.userId, { ...updateKey, updatedAt: new Date().toISOString() })
+      } else {
+        const entry = { userId: req.userId, wechatCursor: null, alipayCursor: null, updatedAt: new Date().toISOString() }
+        entry[source === 'wechat' ? 'wechatCursor' : 'alipayCursor'] = newCursor
+        db.insert('syncCursors', entry)
+      }
 
-    res.json({ success: true, synced, total: remoteBills.length })
+      return { synced, total: remoteBills.length }
+    })
+
+    res.json({ success: true, ...result })
   } catch (e) {
     log.error('同步失败', { userId: req.userId, source: req.body.source, error: e.message, stack: e.stack })
     res.status(500).json({ error: '同步失败' })

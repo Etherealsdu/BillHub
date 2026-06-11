@@ -7,6 +7,7 @@ Page({
   data: {
     isEdit: false,
     billId: '',
+    isFamilyBill: false,
     form: {
       type: 'expense',
       amount: '',
@@ -46,7 +47,7 @@ Page({
     if (options.id) {
       let bill = storage.getBills().find(b => b.id === options.id)
       if (!bill) {
-        api.getBills({}).then(data => {
+        api.getBills({ pageSize: 100 }).then(data => {
           bill = (data.bills || []).find(b => b.id === options.id)
           if (bill) this._populateBill(bill)
         }).catch(() => {})
@@ -162,18 +163,46 @@ Page({
     }
 
     if (this.data.isEdit) {
-      storage.updateBill(this.data.billId, billData)
-      util.showSuccess('修改成功')
-      logger.info('编辑账单', { billId: this.data.billId, type: billData.type, amount: billData.amount })
+      if (this.data.isFamilyBill) {
+        util.showLoading('保存中...')
+        api.updateBill(this.data.billId, billData)
+          .then(() => {
+            util.hideLoading()
+            util.showSuccess('修改成功')
+            logger.info('编辑账单（家庭）', { billId: this.data.billId, type: billData.type, amount: billData.amount })
+            setTimeout(() => util.navigateBack(), 300)
+          })
+          .catch(err => {
+            util.hideLoading()
+            util.showError('修改失败: ' + err.message)
+          })
+      } else {
+        storage.updateBill(this.data.billId, billData)
+        util.showSuccess('修改成功')
+        logger.info('编辑账单', { billId: this.data.billId, type: billData.type, amount: billData.amount })
+        setTimeout(() => util.navigateBack(), 300)
+      }
     } else {
-      storage.addBill(billData)
-      util.showSuccess('添加成功')
-      logger.info('新增账单', { type: billData.type, amount: billData.amount, category: billData.categoryName })
+      if (this.data.isFamilyBill) {
+        util.showLoading('添加中...')
+        api.addBill(billData)
+          .then(() => {
+            util.hideLoading()
+            util.showSuccess('添加成功')
+            logger.info('新增账单（家庭）', { type: billData.type, amount: billData.amount, category: billData.categoryName })
+            setTimeout(() => util.navigateBack(), 300)
+          })
+          .catch(err => {
+            util.hideLoading()
+            util.showError('添加失败: ' + err.message)
+          })
+      } else {
+        storage.addBill(billData)
+        util.showSuccess('添加成功')
+        logger.info('新增账单', { type: billData.type, amount: billData.amount, category: billData.categoryName })
+        setTimeout(() => util.navigateBack(), 300)
+      }
     }
-
-    setTimeout(() => {
-      util.navigateBack()
-    }, 300)
   },
 
   onDelete() {
@@ -183,19 +212,36 @@ Page({
       content: '确定删除这条账单吗？',
       success(res) {
         if (res.confirm) {
-          storage.deleteBill(self.data.billId)
-          util.showSuccess('已删除')
-          logger.info('编辑页删除账单', { billId: self.data.billId })
-          setTimeout(() => util.navigateBack(), 300)
+          if (self.data.isFamilyBill) {
+            util.showLoading('删除中...')
+            api.deleteBill(self.data.billId)
+              .then(() => {
+                util.hideLoading()
+                util.showSuccess('已删除')
+                logger.info('编辑页删除账单（家庭）', { billId: self.data.billId })
+                setTimeout(() => util.navigateBack(), 300)
+              })
+              .catch(err => {
+                util.hideLoading()
+                util.showError('删除失败: ' + err.message)
+              })
+          } else {
+            storage.deleteBill(self.data.billId)
+            util.showSuccess('已删除')
+            logger.info('编辑页删除账单', { billId: self.data.billId })
+            setTimeout(() => util.navigateBack(), 300)
+          }
         }
       }
     })
   },
 
   _populateBill(bill) {
+    const isFamily = !!bill.ownerName
     this.setData({
       isEdit: true,
       billId: bill.id,
+      isFamilyBill: isFamily,
       'form.type': bill.type,
       'form.amount': String(Math.abs(bill.amount)),
       'form.category': bill.category || '',
