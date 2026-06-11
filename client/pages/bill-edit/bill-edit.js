@@ -1,5 +1,6 @@
 const storage = require('../../utils/storage')
 const util = require('../../utils/util')
+const api = require('../../utils/api')
 const logger = require('../../utils/logger')
 
 Page({
@@ -43,22 +44,14 @@ Page({
     })
 
     if (options.id) {
-      const bill = storage.getBills().find(b => b.id === options.id)
-      if (bill) {
-        const d = new Date(bill.date)
-        this.setData({
-          isEdit: true,
-          billId: bill.id,
-          'form.type': bill.type,
-          'form.amount': String(Math.abs(bill.amount)),
-          'form.category': bill.category || '',
-          'form.categoryName': bill.categoryName || '',
-          'form.categoryIcon': bill.categoryIcon || '📦',
-          'form.date': util.formatDate(bill.date),
-          'form.time': util.formatTime(bill.date),
-          'form.source': bill.source || 'manual',
-          'form.remark': bill.remark || ''
-        })
+      let bill = storage.getBills().find(b => b.id === options.id)
+      if (!bill) {
+        api.getBills({}).then(data => {
+          bill = (data.bills || []).find(b => b.id === options.id)
+          if (bill) this._populateBill(bill)
+        }).catch(() => {})
+      } else {
+        this._populateBill(bill)
       }
     }
 
@@ -196,6 +189,22 @@ Page({
           setTimeout(() => util.navigateBack(), 300)
         }
       }
+    })
+  },
+
+  _populateBill(bill) {
+    this.setData({
+      isEdit: true,
+      billId: bill.id,
+      'form.type': bill.type,
+      'form.amount': String(Math.abs(bill.amount)),
+      'form.category': bill.category || '',
+      'form.categoryName': bill.categoryName || '',
+      'form.categoryIcon': bill.categoryIcon || '📦',
+      'form.date': util.formatDate(bill.date),
+      'form.time': util.formatTime(bill.date),
+      'form.source': bill.source || 'manual',
+      'form.remark': bill.remark || ''
     })
   }
 })

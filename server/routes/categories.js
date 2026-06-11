@@ -28,6 +28,7 @@ router.post('/', (req, res) => {
   const { name, icon, type } = req.body
   if (!name || !type) return res.status(400).json({ error: '缺少 name 或 type' })
   if (!['expense', 'income'].includes(type)) return res.status(400).json({ error: 'type 无效' })
+  if (!name.trim()) return res.status(400).json({ error: '分类名称不能为空' })
   if (name.trim().length > 10) return res.status(400).json({ error: '分类名称最多 10 个字符' })
 
   const existing = db.find('categories', c => c.userId === req.userId && c.type === type)

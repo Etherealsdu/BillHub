@@ -96,7 +96,7 @@ router.post('/leave', (req, res) => {
     db.remove('families', f => f.id === familyId)
     log.info('家庭已解散', { familyId })
   } else if (isAdmin) {
-    const newAdmin = remaining.sort((a, b) => a.createdAt - b.createdAt)[0]
+    const newAdmin = remaining.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))[0]
     db.update('users', u => u.id === newAdmin.id, { familyRole: 'admin' })
     log.info('管理员转移', { familyId, newAdminId: newAdmin.id })
   }

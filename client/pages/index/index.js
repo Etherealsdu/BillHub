@@ -19,6 +19,7 @@ Page({
     totalBills: 0,
     loading: true,
     loginRetryCount: 0,
+    lastSyncSource: '',
     scope: 'personal',
     hasFamily: false
   },
@@ -131,34 +132,40 @@ Page({
       itemList: ['同步微信账单', '同步支付宝账单'],
       success(res) {
         const source = res.tapIndex === 0 ? 'wechat' : 'alipay'
-        util.showLoading('正在同步' + (source === 'wechat' ? '微信' : '支付宝') + '账单...')
-        api.syncBills(source)
-          .then(result => {
-            util.hideLoading()
-            if (result.synced > 0) {
-              storage.setLastSyncTime(new Date().toISOString())
-              util.showSuccess(`同步成功，新增${result.synced}条账单`)
-              logger.info('同步成功', { source: source, synced: result.synced, total: result.total })
-            } else {
-              util.showToast('没有新账单需要同步', 'none')
-              logger.info('同步完成无新数据', { source: source })
-            }
-            self.setData({ loginRetryCount: 0 })
-            self.loadData()
-            self.setData({ lastSyncTime: util.formatDateTime(new Date().toISOString()) })
-          })
-          .catch(err => {
-            util.hideLoading()
-            if (err.message === 'UNAUTHORIZED') {
-              logger.warn('同步需重新登录', { loginRetry: self.data.loginRetryCount })
-              self.onLoginFirst()
-            } else {
-              util.showError('同步失败: ' + err.message)
-              logger.error('同步失败', { source: source, error: err.message })
-            }
-          })
+        self.setData({ lastSyncSource: source })
+        self._doSync(source)
       }
     })
+  },
+
+  _doSync(source) {
+    const self = this
+    util.showLoading('正在同步' + (source === 'wechat' ? '微信' : '支付宝') + '账单...')
+    api.syncBills(source)
+      .then(result => {
+        util.hideLoading()
+        if (result.synced > 0) {
+          storage.setLastSyncTime(new Date().toISOString())
+          util.showSuccess(`同步成功，新增${result.synced}条账单`)
+          logger.info('同步成功', { source: source, synced: result.synced, total: result.total })
+        } else {
+          util.showToast('没有新账单需要同步', 'none')
+          logger.info('同步完成无新数据', { source: source })
+        }
+        self.setData({ loginRetryCount: 0 })
+        self.loadData()
+        self.setData({ lastSyncTime: util.formatDateTime(new Date().toISOString()) })
+      })
+      .catch(err => {
+        util.hideLoading()
+        if (err.message === 'UNAUTHORIZED') {
+          logger.warn('同步需重新登录', { loginRetry: self.data.loginRetryCount })
+          self.onLoginFirst()
+        } else {
+          util.showError('同步失败: ' + err.message)
+          logger.error('同步失败', { source: source, error: err.message })
+        }
+      })
   },
 
   onLoginFirst() {
@@ -180,7 +187,8 @@ Page({
               util.showSuccess('登录成功')
               logger.info('登录成功', { userId: data.user?.id })
               self.setData({ loginRetryCount: 0 })
-              self.onSyncTap()
+              const source = self.data.lastSyncSource || 'wechat'
+              self._doSync(source)
             })
             .catch(err => {
               util.hideLoading()
