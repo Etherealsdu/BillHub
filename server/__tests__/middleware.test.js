@@ -26,7 +26,7 @@ describe('JWT 认证中间件', () => {
     const { req, res, next } = mockReqRes('invalid-token-format')
     createMiddleware()(req, res, next)
     expect(res.status).toHaveBeenCalledWith(401)
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'TOKEN_EXPIRED' }))
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'INVALID_TOKEN' }))
   })
 
   test('有效 token 通过认证', () => {

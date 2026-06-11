@@ -128,7 +128,7 @@ Page({
     }
     const type = this.data.addType
     const cats = storage.getCategories()
-    const exists = cats[type].some(c => c.name === name)
+    const exists = cats[type].some(c => c.name === name && !c.isSystem)
     if (exists) {
       util.showToast('该分类已存在')
       return

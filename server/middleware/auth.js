@@ -15,7 +15,10 @@ function authMiddleware(req, res, next) {
     req.familyId = payload.familyId || null
     next()
   } catch (e) {
-    return res.status(401).json({ error: '登录已过期', code: 'TOKEN_EXPIRED' })
+    if (e.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: '登录已过期', code: 'TOKEN_EXPIRED' })
+    }
+    return res.status(401).json({ error: '无效的登录凭证', code: 'INVALID_TOKEN' })
   }
 }
 

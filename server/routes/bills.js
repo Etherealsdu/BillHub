@@ -105,7 +105,7 @@ router.post('/sync', async (req, res) => {
 
     let synced = 0
     for (const b of remoteBills) {
-      const exists = db.findOne('bills', bill => bill.id === b.id)
+      const exists = db.findOne('bills', bill => bill.id === b.id && bill.userId === req.userId)
       if (!exists) {
         db.insert('bills', { ...b, userId: req.userId, source, syncSource: source, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() })
         synced++

@@ -211,6 +211,13 @@ function clearAllData() {
     Object.keys(STORAGE_KEYS).forEach(k => {
       if (k !== 'SETTINGS') wx.removeStorageSync(STORAGE_KEYS[k])
     })
+    const s = getSettings()
+    s.familyId = null
+    s.familyName = ''
+    s.scope = 'personal'
+    s.wechatBound = false
+    s.alipayBound = false
+    safeSet(STORAGE_KEYS.SETTINGS, s)
     return true
   } catch (e) {
     console.error('[Storage] 清除数据失败:', e)

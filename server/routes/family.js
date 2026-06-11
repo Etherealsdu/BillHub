@@ -88,12 +88,17 @@ router.post('/leave', (req, res) => {
   if (!user || !user.familyId) return res.status(400).json({ error: '您不在任何家庭中' })
 
   const familyId = user.familyId
+  const isAdmin = user.familyRole === 'admin'
   db.update('users', u => u.id === req.userId, { familyId: null, familyRole: null })
 
   const remaining = db.find('users', u => u.familyId === familyId)
   if (remaining.length === 0) {
     db.remove('families', f => f.id === familyId)
     log.info('家庭已解散', { familyId })
+  } else if (isAdmin) {
+    const newAdmin = remaining.sort((a, b) => a.createdAt - b.createdAt)[0]
+    db.update('users', u => u.id === newAdmin.id, { familyRole: 'admin' })
+    log.info('管理员转移', { familyId, newAdminId: newAdmin.id })
   }
 
   log.info('离开家庭', { userId: req.userId, familyId })

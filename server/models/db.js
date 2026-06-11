@@ -52,6 +52,9 @@ function save() {
         else resolve()
       })
     })
+  }).catch(err => {
+    log.error('数据库写入失败', { error: err.message, path: dbPath })
+    throw err
   })
   return writeQueue
 }

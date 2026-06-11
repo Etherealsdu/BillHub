@@ -160,10 +160,25 @@ Page({
       content: `确定删除这条${bill.type === 'expense' ? '支出' : '收入'}记录吗？`,
       success(res) {
         if (res.confirm) {
-          storage.deleteBill(bill.id)
-          util.showSuccess('已删除')
-          logger.info('删除账单', { billId: bill.id, amount: bill.amount })
-          self.loadData()
+          if (self.data.scope === 'family') {
+            util.showLoading('删除中...')
+            api.deleteBill(bill.id)
+              .then(() => {
+                util.hideLoading()
+                util.showSuccess('已删除')
+                logger.info('删除账单（家庭）', { billId: bill.id })
+                self.loadData()
+              })
+              .catch(err => {
+                util.hideLoading()
+                util.showError('删除失败: ' + err.message)
+              })
+          } else {
+            storage.deleteBill(bill.id)
+            util.showSuccess('已删除')
+            logger.info('删除账单', { billId: bill.id, amount: bill.amount })
+            self.loadData()
+          }
         }
       }
     })
@@ -202,16 +217,33 @@ Page({
       success(res) {
         const cat = allCats[res.tapIndex]
         if (cat) {
-          const bills = storage.getBills()
-          const idsSet = new Set(self.data.selectedIds)
-          const updatedBills = bills.map(b => 
-            idsSet.has(b.id) ? { ...b, category: cat.id, categoryName: cat.name, categoryIcon: cat.icon } : b
-          )
-          storage.setBills(updatedBills)
-          util.showSuccess(`已修改${self.data.selectedIds.length}条账单分类`)
-          logger.info('批量修改分类', { count: self.data.selectedIds.length, category: cat.name })
-          self.loadData()
-          self.exitBatchMode()
+          const ids = self.data.selectedIds
+          if (self.data.scope === 'family') {
+            util.showLoading('修改中...')
+            api.batchBills(ids, 'category', { category: cat.id, categoryName: cat.name, categoryIcon: cat.icon })
+              .then(() => {
+                util.hideLoading()
+                util.showSuccess(`已修改${ids.length}条账单分类`)
+                logger.info('批量修改分类（家庭）', { count: ids.length, category: cat.name })
+                self.loadData()
+                self.exitBatchMode()
+              })
+              .catch(err => {
+                util.hideLoading()
+                util.showError('修改失败: ' + err.message)
+              })
+          } else {
+            const bills = storage.getBills()
+            const idsSet = new Set(ids)
+            const updatedBills = bills.map(b => 
+              idsSet.has(b.id) ? { ...b, category: cat.id, categoryName: cat.name, categoryIcon: cat.icon } : b
+            )
+            storage.setBills(updatedBills)
+            util.showSuccess(`已修改${ids.length}条账单分类`)
+            logger.info('批量修改分类', { count: ids.length, category: cat.name })
+            self.loadData()
+            self.exitBatchMode()
+          }
         }
       }
     })
@@ -228,14 +260,31 @@ Page({
       content: `确定删除选中的${self.data.selectedIds.length}条账单吗？`,
       success(res) {
         if (res.confirm) {
-          const bills = storage.getBills()
-          const idsSet = new Set(self.data.selectedIds)
-          const updatedBills = bills.filter(b => !idsSet.has(b.id))
-          storage.setBills(updatedBills)
-          util.showSuccess('已删除')
-          logger.info('批量删除账单', { count: self.data.selectedIds.length })
-          self.loadData()
-          self.exitBatchMode()
+          const ids = self.data.selectedIds
+          if (self.data.scope === 'family') {
+            util.showLoading('删除中...')
+            api.batchBills(ids, 'delete')
+              .then(() => {
+                util.hideLoading()
+                util.showSuccess('已删除')
+                logger.info('批量删除账单（家庭）', { count: ids.length })
+                self.loadData()
+                self.exitBatchMode()
+              })
+              .catch(err => {
+                util.hideLoading()
+                util.showError('删除失败: ' + err.message)
+              })
+          } else {
+            const bills = storage.getBills()
+            const idsSet = new Set(ids)
+            const updatedBills = bills.filter(b => !idsSet.has(b.id))
+            storage.setBills(updatedBills)
+            util.showSuccess('已删除')
+            logger.info('批量删除账单', { count: ids.length })
+            self.loadData()
+            self.exitBatchMode()
+          }
         }
       }
     })
